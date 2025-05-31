@@ -8,6 +8,7 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { PrivacySettings } from './pages/PrivacySettings';
+import { Opportunities } from './pages/Opportunities';
 
 function App() {
   return (
@@ -22,7 +23,8 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/privacy-settings" element={<PrivacySettings />} />
-            <Route path="*" element={<Navigate to="/\" replace />} />
+            <Route path="/opportunities" element={<Opportunities />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </AuthProvider>

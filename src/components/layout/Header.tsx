@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../store/auth';
-import { Menu, X, LogOut, User, Settings, BrainCircuit } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings, BrainCircuit, Briefcase } from 'lucide-react';
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -10,6 +10,7 @@ export function Header() {
   
   const nav = [
     { name: 'Dashboard', href: '/dashboard', auth: true },
+    { name: 'Opportunities', href: '/opportunities', auth: true },
     { name: 'Profile', href: '/profile', auth: true },
     { name: 'Privacy', href: '/privacy-settings', auth: true },
     { name: 'Sign In', href: '/signin', auth: false },
@@ -56,6 +57,9 @@ export function Header() {
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                   }`}
                 >
+                  {item.name === 'Opportunities' && (
+                    <Briefcase className="mr-2 h-4 w-4" />
+                  )}
                   {item.name}
                 </Link>
               ))}
