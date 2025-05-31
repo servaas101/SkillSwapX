@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import { skl } from '../lib/skills';
 
+// Default organization ID for demo purposes
+const DEFAULT_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+
 export function SkillsAnalytics() {
   const { usr } = useAuthContext();
   const nav = useNavigate();
@@ -20,6 +23,7 @@ export function SkillsAnalytics() {
   const [trends, setTrends] = useState<any[]>([]);
   const [ldg, setLdg] = useState(true);
   const [sel, setSel] = useState('ai');
+  const [err, setErr] = useState('');
 
   useEffect(() => {
     if (!usr) {
@@ -30,7 +34,7 @@ export function SkillsAnalytics() {
     const loadData = async () => {
       try {
         const [gapsData, staffingData, trendsData] = await Promise.all([
-          skl.getGaps(usr.org_id),
+          skl.getGaps(DEFAULT_ORG_ID),
           skl.getStaffing('blockchain-pilot'),
           Promise.all([
             skl.trackTrend('react'),
@@ -41,9 +45,10 @@ export function SkillsAnalytics() {
 
         setGaps(gapsData);
         setStaff(staffingData);
-        setTrends(trendsData);
-      } catch (e) {
+        setTrends(trendsData.flat());
+      } catch (e: any) {
         console.error('Failed to load analytics:', e);
+        setErr(e.message);
       } finally {
         setLdg(false);
       }
@@ -63,6 +68,15 @@ export function SkillsAnalytics() {
           Analyze skill gaps, track trends, and make data-driven staffing decisions
         </p>
       </div>
+
+      {err && (
+        <div className="bg-red-50 p-4 rounded-lg">
+          <div className="flex">
+            <AlertTriangle className="h-5 w-5 text-red-400" />
+            <p className="ml-3 text-sm text-red-700">{err}</p>
+          </div>
+        </div>
+      )}
 
       {/* Initiative Selector */}
       <div className="bg-white p-6 shadow-sm sm:rounded-lg">
@@ -219,7 +233,7 @@ export function SkillsAnalytics() {
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {candidate.skills.map(skill => (
+                  {candidate.skills.map((skill: any) => (
                     <div key={skill.name} className="rounded-lg bg-gray-50 p-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-gray-700">

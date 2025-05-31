@@ -15,7 +15,7 @@ export const skl = {
       `)
       .eq('uid', uid)
       .order('weight', { ascending: false });
-    return data;
+    return data || [];
   },
 
   // Add new skill
@@ -72,7 +72,7 @@ export const skl = {
     const { data } = await sb.rpc('analyze_skill_gaps', {
       p_org_id: orgId
     });
-    return data;
+    return data || [];
   },
 
   // Get project staffing recommendations
@@ -80,7 +80,7 @@ export const skl = {
     const { data } = await sb.rpc('get_project_staffing', {
       p_project_id: projectId
     });
-    return data;
+    return data || [];
   },
 
   // Get skill adjacency recommendations
@@ -88,7 +88,7 @@ export const skl = {
     const { data } = await sb.rpc('get_adjacent_skills', {
       p_skill_id: skillId
     });
-    return data;
+    return data || [];
   },
 
   // Get learning recommendations
@@ -96,7 +96,7 @@ export const skl = {
     const { data } = await sb.rpc('get_learning_path', {
       p_uid: uid
     });
-    return data;
+    return data || [];
   },
 
   // Track skill trend
@@ -104,6 +104,6 @@ export const skl = {
     const { data } = await sb.rpc('track_skill_trend', {
       p_skill_name: skillName
     });
-    return data;
+    return data || [];
   }
 };
