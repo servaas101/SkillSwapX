@@ -11,7 +11,7 @@
   targetPort = 5173
 
 [context.production]
-  environment = { NODE_ENV = "production" }
+  environment = { NODE_ENV = "production", NPM_FLAGS = "--include=dev" }
 
 [context.deploy-preview]
   environment = { NODE_ENV = "preview" }
