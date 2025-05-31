@@ -24,7 +24,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/privacy-settings" element={<PrivacySettings />} />
             <Route path="/opportunities" element={<Opportunities />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/\" replace />} />
           </Route>
         </Routes>
       </AuthProvider>
