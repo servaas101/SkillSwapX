@@ -9,6 +9,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { PrivacySettings } from './pages/PrivacySettings';
 import { Opportunities } from './pages/Opportunities';
+import { SkillsAnalytics } from './pages/SkillsAnalytics';
 
 function App() {
   return (
@@ -24,7 +25,8 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/privacy-settings" element={<PrivacySettings />} />
             <Route path="/opportunities" element={<Opportunities />} />
-            <Route path="*" element={<Navigate to="/\" replace />} />
+            <Route path="/skills-analytics" element={<SkillsAnalytics />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </AuthProvider>

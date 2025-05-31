@@ -65,5 +65,45 @@ export const skl = {
     };
 
     return jsonld.compact(data, context);
+  },
+
+  // Get organization skill gaps
+  async getGaps(orgId: string) {
+    const { data } = await sb.rpc('analyze_skill_gaps', {
+      p_org_id: orgId
+    });
+    return data;
+  },
+
+  // Get project staffing recommendations
+  async getStaffing(projectId: string) {
+    const { data } = await sb.rpc('get_project_staffing', {
+      p_project_id: projectId
+    });
+    return data;
+  },
+
+  // Get skill adjacency recommendations
+  async getAdjacent(skillId: string) {
+    const { data } = await sb.rpc('get_adjacent_skills', {
+      p_skill_id: skillId
+    });
+    return data;
+  },
+
+  // Get learning recommendations
+  async getLearning(uid: string) {
+    const { data } = await sb.rpc('get_learning_path', {
+      p_uid: uid
+    });
+    return data;
+  },
+
+  // Track skill trend
+  async trackTrend(skillName: string) {
+    const { data } = await sb.rpc('track_skill_trend', {
+      p_skill_name: skillName
+    });
+    return data;
   }
 };
