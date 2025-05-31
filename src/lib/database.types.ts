@@ -59,6 +59,170 @@ export interface Database {
           gdl?: string | null
         }
       }
+      projects: {
+        Row: {
+          id: string
+          uid: string
+          org: string
+          ttl: string
+          dsc: string | null
+          img: string | null
+          skl: Json | null
+          bgt: Json | null
+          sts: string
+          str: string
+          end: string | null
+          loc: string | null
+          typ: string
+          cdt: string
+          udt: string
+          met: Json | null
+        }
+        Insert: {
+          id?: string
+          uid: string
+          org: string
+          ttl: string
+          dsc?: string | null
+          img?: string | null
+          skl?: Json | null
+          bgt?: Json | null
+          sts?: string
+          str: string
+          end?: string | null
+          loc?: string | null
+          typ: string
+          cdt?: string
+          udt?: string
+          met?: Json | null
+        }
+        Update: {
+          id?: string
+          uid?: string
+          org?: string
+          ttl?: string
+          dsc?: string | null
+          img?: string | null
+          skl?: Json | null
+          bgt?: Json | null
+          sts?: string
+          str?: string
+          end?: string | null
+          loc?: string | null
+          typ?: string
+          cdt?: string
+          udt?: string
+          met?: Json | null
+        }
+      }
+      applications: {
+        Row: {
+          id: string
+          pid: string
+          uid: string
+          msg: string | null
+          exp: Json | null
+          sts: string
+          cdt: string
+          udt: string
+        }
+        Insert: {
+          id?: string
+          pid: string
+          uid: string
+          msg?: string | null
+          exp?: Json | null
+          sts?: string
+          cdt?: string
+          udt?: string
+        }
+        Update: {
+          id?: string
+          pid?: string
+          uid?: string
+          msg?: string | null
+          exp?: Json | null
+          sts?: string
+          cdt?: string
+          udt?: string
+        }
+      }
+      mentorships: {
+        Row: {
+          id: string
+          uid: string
+          skl: string[]
+          exp: number
+          cap: number
+          cur: number
+          bio: string | null
+          rte: Json | null
+          avl: Json | null
+          sts: string
+          cdt: string
+          udt: string
+        }
+        Insert: {
+          id?: string
+          uid: string
+          skl: string[]
+          exp: number
+          cap: number
+          cur?: number
+          bio?: string | null
+          rte?: Json | null
+          avl?: Json | null
+          sts?: string
+          cdt?: string
+          udt?: string
+        }
+        Update: {
+          id?: string
+          uid?: string
+          skl?: string[]
+          exp?: number
+          cap?: number
+          cur?: number
+          bio?: string | null
+          rte?: Json | null
+          avl?: Json | null
+          sts?: string
+          cdt?: string
+          udt?: string
+        }
+      }
+      matches: {
+        Row: {
+          id: string
+          mid: string
+          uid: string
+          gls: string[]
+          dur: number
+          sts: string
+          cdt: string
+          udt: string
+        }
+        Insert: {
+          id?: string
+          mid: string
+          uid: string
+          gls: string[]
+          dur: number
+          sts?: string
+          cdt?: string
+          udt?: string
+        }
+        Update: {
+          id?: string
+          mid?: string
+          uid?: string
+          gls?: string[]
+          dur?: number
+          sts?: string
+          cdt?: string
+          udt?: string
+        }
+      }
       badges: {
         Row: {
           id: string
@@ -233,6 +397,54 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      create_project: {
+        Args: {
+          p_ttl: string
+          p_dsc: string
+          p_skl: Json
+          p_bgt: Json
+          p_str: string
+          p_end: string
+          p_loc: string
+          p_typ: string
+          p_met?: Json
+        }
+        Returns: string
+      }
+      apply_project: {
+        Args: {
+          p_pid: string
+          p_msg: string
+          p_exp: Json
+        }
+        Returns: string
+      }
+      create_mentorship: {
+        Args: {
+          p_skl: string[]
+          p_exp: number
+          p_cap: number
+          p_bio: string
+          p_rte: Json
+          p_avl: Json
+        }
+        Returns: string
+      }
+      request_mentorship: {
+        Args: {
+          p_mid: string
+          p_gls: string[]
+          p_dur: number
+        }
+        Returns: string
+      }
+      update_match_status: {
+        Args: {
+          p_id: string
+          p_sts: string
+        }
+        Returns: void
+      }
       create_badge: {
         Args: {
           p_nam: string
