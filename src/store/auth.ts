@@ -34,31 +34,52 @@ export const useAuth = create<AuthState>((set, get) => ({
       set({ ldg: true });
       
       // Get current session
-      const { data: { session } } = await sb.auth.getSession();
+      const { data: { session }, error: sessionError } = await sb.auth.getSession();
+      
+      if (sessionError) {
+        throw sessionError;
+      }
       
       if (session) {
-        // Get user profile if session exists
-        const { data, error } = await sb
-          .from('profiles')
-          .select('*')
-          .eq('uid', session.user.id)
-          .single();
+        try {
+          // Get user profile if session exists
+          const { data, error } = await sb
+            .from('profiles')
+            .select('*')
+            .eq('uid', session.user.id)
+            .single();
+            
+          if (error) {
+            // If profile fetch fails due to JWT expiration, reset auth state
+            if (error.message.includes('JWT expired')) {
+              await sb.auth.signOut(); // Sign out to clear invalid session
+              set({ usr: null, ses: null, gdp: false });
+              throw error;
+            }
+            throw error;
+          }
           
-        if (error) throw error;
-        
-        set({ 
-          usr: session.user,
-          ses: session,
-          gdp: data?.gdp || false,
-          init: true
-        });
+          set({ 
+            usr: session.user,
+            ses: session,
+            gdp: data?.gdp || false
+          });
+        } catch (profileError) {
+          // Reset auth state on profile fetch error
+          console.error('Profile fetch error:', profileError);
+          set({ usr: null, ses: null, gdp: false });
+          throw profileError;
+        }
       } else {
-        set({ usr: null, ses: null, init: true });
+        set({ usr: null, ses: null, gdp: false });
       }
     } catch (e) {
       console.error('Auth load error:', e);
+      // Ensure auth state is reset on any error
+      set({ usr: null, ses: null, gdp: false });
     } finally {
-      set({ ldg: false });
+      // Always set init to true to prevent infinite loading
+      set({ ldg: false, init: true });
     }
   },
 
@@ -130,6 +151,8 @@ export const useAuth = create<AuthState>((set, get) => ({
       return {};
     } catch (e: any) {
       console.error('Sign in error:', e);
+      // Reset auth state on sign in error
+      set({ usr: null, ses: null, gdp: false });
       return { err: e.message || 'Sign in failed' };
     } finally {
       set({ ldg: false });
@@ -144,6 +167,8 @@ export const useAuth = create<AuthState>((set, get) => ({
       set({ usr: null, ses: null, gdp: false });
     } catch (e) {
       console.error('Sign out error:', e);
+      // Ensure auth state is reset even if sign out fails
+      set({ usr: null, ses: null, gdp: false });
     } finally {
       set({ ldg: false });
     }
@@ -185,7 +210,14 @@ export const useAuth = create<AuthState>((set, get) => ({
         })
         .eq('uid', usr.id);
         
-      if (error) throw error;
+      if (error) {
+        // Handle JWT expiration during profile update
+        if (error.message.includes('JWT expired')) {
+          await sb.auth.signOut();
+          set({ usr: null, ses: null, gdp: false });
+        }
+        throw error;
+      }
       
       // Log an update to profile if it contains significant changes
       if (data.fn || data.ln || data.em || data.ph) {
@@ -223,7 +255,14 @@ export const useAuth = create<AuthState>((set, get) => ({
         })
         .eq('uid', usr.id);
         
-      if (error) throw error;
+      if (error) {
+        // Handle JWT expiration during GDPR consent update
+        if (error.message.includes('JWT expired')) {
+          await sb.auth.signOut();
+          set({ usr: null, ses: null, gdp: false });
+        }
+        throw error;
+      }
       
       // Log consent
       await sb.rpc('log_consent', {
@@ -283,7 +322,14 @@ export const useAuth = create<AuthState>((set, get) => ({
         p_uid: usr.id
       });
       
-      if (error) throw error;
+      if (error) {
+        // Handle JWT expiration during data deletion
+        if (error.message.includes('JWT expired')) {
+          await sb.auth.signOut();
+          set({ usr: null, ses: null, gdp: false });
+        }
+        throw error;
+      }
       
       // Log deletion request
       await sb.rpc('log_consent', {
@@ -315,8 +361,33 @@ export const initAuth = () => {
   loadUsr();
   
   // Set up auth state change listener
-  sb.auth.onAuthStateChange((_event, session) => {
-    useAuth.setState({ ses: session, usr: session?.user || null });
+  sb.auth.onAuthStateChange(async (_event, session) => {
+    if (session) {
+      try {
+        // Verify session is still valid by attempting to fetch profile
+        const { error } = await sb
+          .from('profiles')
+          .select('gdp')
+          .eq('uid', session.user.id)
+          .single();
+          
+        if (error) {
+          if (error.message.includes('JWT expired')) {
+            await sb.auth.signOut();
+            useAuth.setState({ ses: null, usr: null, gdp: false });
+            return;
+          }
+          throw error;
+        }
+        
+        useAuth.setState({ ses: session, usr: session.user });
+      } catch (e) {
+        console.error('Auth state change error:', e);
+        useAuth.setState({ ses: null, usr: null, gdp: false });
+      }
+    } else {
+      useAuth.setState({ ses: null, usr: null, gdp: false });
+    }
     
     // If session exists but we don't have profile data, load it
     if (session && !useAuth.getState().init) {
