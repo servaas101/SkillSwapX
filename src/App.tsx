@@ -12,6 +12,7 @@ import { Opportunities } from './pages/Opportunities';
 import { SkillsAnalytics } from './pages/SkillsAnalytics';
 import { ProjectCollaboration } from './pages/ProjectCollaboration';
 import { MentorshipManagement } from './pages/MentorshipManagement';
+import { MentorProfile } from './pages/MentorProfile';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="/skills-analytics" element={<SkillsAnalytics />} />
             <Route path="/project-collaboration" element={<ProjectCollaboration />} />
             <Route path="/mentorship" element={<MentorshipManagement />} />
+            <Route path="/mentor-profile" element={<MentorProfile />} />
             <Route path="*" element={<Navigate to="/\" replace />} />
           </Route>
         </Routes>
@@ -37,5 +39,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;
