@@ -20,6 +20,22 @@ export default defineConfig({
         },
       },
     },
+    sourcemap: false,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['lucide-react'],
+          db: ['@supabase/supabase-js'],
+        },
+      },
+    },
   },
   server: {
     port: 5173,
