@@ -11,6 +11,7 @@ import { PrivacySettings } from './pages/PrivacySettings';
 import { Opportunities } from './pages/Opportunities';
 import { SkillsAnalytics } from './pages/SkillsAnalytics';
 import { ProjectCollaboration } from './pages/ProjectCollaboration';
+import { MentorshipManagement } from './pages/MentorshipManagement';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/opportunities" element={<Opportunities />} />
             <Route path="/skills-analytics" element={<SkillsAnalytics />} />
             <Route path="/project-collaboration" element={<ProjectCollaboration />} />
+            <Route path="/mentorship" element={<MentorshipManagement />} />
             <Route path="*" element={<Navigate to="/\" replace />} />
           </Route>
         </Routes>
