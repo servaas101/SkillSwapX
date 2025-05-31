@@ -521,6 +521,14 @@ export interface Database {
         }
         Returns: boolean
       }
+      store_encrypted: {
+        Args: {
+          p_typ: string
+          p_dat: string
+          p_iv: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

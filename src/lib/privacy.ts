@@ -42,7 +42,7 @@ export const p = {
 
   // Log compliance action
   async log(t: string, a: string, d: any) {
-    return sb.rpc('log_compliance', {
+    return sb.rpc('log_consent', {
       p_typ: t,
       p_act: a,
       p_dat: d
