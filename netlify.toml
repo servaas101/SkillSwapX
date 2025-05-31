@@ -4,21 +4,18 @@
   edge_functions = "netlify/edge-functions"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "18"
 
 [dev]
   command = "npm run dev"
   targetPort = 5173
 
-# Production context
 [context.production]
   environment = { NODE_ENV = "production" }
 
-# Deploy Preview context
 [context.deploy-preview]
   environment = { NODE_ENV = "preview" }
 
-# Edge Functions
 [[edge_functions]]
   path = "/api/privacy/*"
   function = "pii-redact"
@@ -31,7 +28,6 @@
   path = "/api/encrypt/*"
   function = "data-encrypt"
 
-# Headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -39,4 +35,4 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self' data: https://*.pexels.com https://*.supabase.co; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self' data: https://*.pexels.com https://*.supabase.co; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;"
