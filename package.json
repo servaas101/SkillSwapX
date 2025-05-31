@@ -19,6 +19,7 @@
     "graphology": "^0.25.4",
     "graphology-layout-force": "^0.2.4",
     "graphology-types": "^0.24.7",
+    "jsonld": "^8.3.2",
     "lucide-react": "^0.344.0",
     "qrcode.react": "^3.1.0",
     "react": "^18.3.1",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@types/jsonld": "^1.5.13",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
