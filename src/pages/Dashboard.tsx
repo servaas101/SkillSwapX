@@ -7,7 +7,9 @@ import { QRCodeSVG } from 'qrcode.react';
 import { sb } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 
-type Badge = Database['public']['Tables']['user_badges']['Row'];
+type Badge = Database['public']['Tables']['user_badges']['Row'] & {
+  badges?: Database['public']['Tables']['badges']['Row'];
+};
 type Project = Database['public']['Tables']['projects']['Row'];
 type Mentorship = Database['public']['Tables']['mentorships']['Row'];
 
@@ -233,7 +235,7 @@ export function Dashboard() {
                   <div>
                     <p className="font-medium text-gray-900">{p.ttl}</p>
                     <p className="text-sm text-gray-500">
-                      {format(new Date(p.str), 'MMM d, yyyy')} - {p.end ? format(new Date(p.end), 'MMM d, yyyy') : 'Ongoing'}
+                      {format(new Date(p.str), 'MMM d, yyyy')} - {p.edt ? format(new Date(p.edt), 'MMM d, yyyy') : 'Ongoing'}
                     </p>
                   </div>
                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${

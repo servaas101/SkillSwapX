@@ -341,7 +341,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       
       // Sign out after data deletion
       await sb.auth.signOut();
-      set({ usr: null, ses: null });
+      set({ usr: null, ses: null, gdp: false });
       
       return {};
     } catch (e: any) {
