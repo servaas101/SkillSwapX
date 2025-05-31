@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../store/auth';
 import { User, Mail, Phone, MapPin, Save, Trash2 } from 'lucide-react';
+import { sb } from '../../lib/supabase';
 
 export function ProfileForm() {
   const { usr, updatePrf, ldg } = useAuth();
@@ -21,7 +22,11 @@ export function ProfileForm() {
       if (!usr) return;
       
       try {
-        const { data, error } = await fetch(`/api/profile/${usr.id}`).then(res => res.json());
+        const { data, error } = await sb
+          .from('profiles')
+          .select('fn, ln, em, ph, loc, bio')
+          .eq('uid', usr.id)
+          .single();
         
         if (error) throw error;
         
@@ -35,6 +40,7 @@ export function ProfileForm() {
         }
       } catch (e) {
         console.error('Failed to load profile:', e);
+        setErr('Failed to load profile data');
       }
     };
     
