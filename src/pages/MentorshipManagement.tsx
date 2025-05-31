@@ -60,7 +60,7 @@ export function MentorshipManagement() {
             .select(`
               id,
               uid,
-              profiles:users(fn, ln),
+              profiles:profiles(fn, ln),
               gls,
               dur,
               sts,
@@ -72,7 +72,7 @@ export function MentorshipManagement() {
           sb.from('matches')
             .select(`
               id,
-              mentee:users(id, fn, ln),
+              mentee:profiles!matches_uid_fkey(id, fn, ln),
               str,
               dur,
               sts,
