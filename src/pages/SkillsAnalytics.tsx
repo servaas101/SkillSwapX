@@ -9,7 +9,7 @@ import {
   Brain, Target, TrendingUp, Users, AlertTriangle,
   BookOpen, Award, ChevronRight 
 } from 'lucide-react';
-import { skl } from '../lib/skills';
+import { analytics } from '../lib/analytics';
 
 // Default organization ID for demo purposes
 const DEFAULT_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
@@ -34,12 +34,12 @@ export function SkillsAnalytics() {
     const loadData = async () => {
       try {
         const [gapsData, staffingData, trendsData] = await Promise.all([
-          skl.getGaps(DEFAULT_ORG_ID),
-          skl.getStaffing('blockchain-pilot'),
+          analytics.getSkillGaps(DEFAULT_ORG_ID),
+          analytics.getProjectStaffing('blockchain-pilot'),
           Promise.all([
-            skl.trackTrend('react'),
-            skl.trackTrend('blockchain'),
-            skl.trackTrend('ai')
+            analytics.trackSkillTrend('react'),
+            analytics.trackSkillTrend('blockchain'),
+            analytics.trackSkillTrend('ai')
           ])
         ]);
 
