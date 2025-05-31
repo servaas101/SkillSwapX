@@ -28,7 +28,7 @@ function App() {
             <Route path="/opportunities" element={<Opportunities />} />
             <Route path="/skills-analytics" element={<SkillsAnalytics />} />
             <Route path="/project-collaboration" element={<ProjectCollaboration />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/\" replace />} />
           </Route>
         </Routes>
       </AuthProvider>
