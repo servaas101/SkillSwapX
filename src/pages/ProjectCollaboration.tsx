@@ -89,18 +89,18 @@ export function ProjectCollaboration() {
     setErr('');
 
     try {
-      const { data, error } = await sb.rpc('create_partner_project', {
-        p_title: newProject.title,
-        p_description: newProject.description,
-        p_partner_id: newProject.partner_id,
-        p_start_date: newProject.start_date,
-        p_edt: newProject.edt || null
+      const { data, error } = await sb.rpc('cPrj', {
+        ttl: newProject.title,
+        dsc: newProject.description,
+        pid: newProject.partner_id,
+        str: newProject.start_date,
+        edt: newProject.edt || null
       });
 
       if (error) throw error;
 
       // Refresh projects list
-      const { data: updatedProjects, error: projectsError } = await sb
+      const { data: uPrj, error: pErr } = await sb
         .from('projects')
         .select(`
           *,
@@ -110,9 +110,9 @@ export function ProjectCollaboration() {
         .eq('org_id', usr.org_id)
         .order('created_at', { ascending: false });
 
-      if (projectsError) throw projectsError;
+      if (pErr) throw pErr;
 
-      setProjects(updatedProjects);
+      setProjects(uPrj);
       setShowNewProject(false);
       setNewProject({
         title: '',

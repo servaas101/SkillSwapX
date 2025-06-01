@@ -11,10 +11,10 @@ export function SkillList({ uid }: Props) {
   const [ldg, setLdg] = useState(true);
 
   useEffect(() => {
-    const loadSkills = async () => {
+    const lSkl = async () => {
       try {
-        const data = await skl.get(uid);
-        if (data) setSkills(data);
+        const d = await skl.get(uid);
+        if (d) setSkills(d);
       } catch (e) {
         console.error('Failed to load skills:', e);
       } finally {
@@ -22,31 +22,31 @@ export function SkillList({ uid }: Props) {
       }
     };
 
-    loadSkills();
+    lSkl();
   }, [uid]);
 
-  const handleEndorse = async (id: string) => {
+  const hEnd = async (id: string) => {
     try {
       await skl.endorse(id);
-      const data = await skl.get(uid);
-      if (data) setSkills(data);
+      const d = await skl.get(uid);
+      if (d) setSkills(d);
     } catch (e) {
       console.error('Failed to endorse skill:', e);
     }
   };
 
-  const handleExport = async () => {
+  const hExp = async () => {
     try {
-      const data = await skl.export(uid);
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
+      const d = await skl.export(uid);
+      const b = new Blob([JSON.stringify(d, null, 2)], {
         type: 'application/ld+json'
       });
-      const url = URL.createObjectURL(blob);
+      const u = URL.createObjectURL(b);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = u;
       a.download = 'skills.jsonld';
       a.click();
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(u);
     } catch (e) {
       console.error('Failed to export skills:', e);
     }
