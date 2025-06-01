@@ -195,8 +195,8 @@ export function Opportunities() {
                       {p.match >= 80 && (
                         <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                           <Star className="mr-1 h-3 w-3" />
-                          Best Match
-                        </span>
+                      {p.edt && (
+                        <> - {format(new Date(p.edt), 'MMM d, yyyy')}</>
                       )}
                     </div>
                     

@@ -71,7 +71,7 @@ export interface Database {
           bgt: Json | null
           sts: string
           str: string
-          end: string | null
+          edt: string | null
           loc: string | null
           typ: string
           cdt: string
@@ -89,7 +89,7 @@ export interface Database {
           bgt?: Json | null
           sts?: string
           str: string
-          end?: string | null
+          edt?: string | null
           loc?: string | null
           typ: string
           cdt?: string
@@ -107,7 +107,7 @@ export interface Database {
           bgt?: Json | null
           sts?: string
           str?: string
-          end?: string | null
+          edt?: string | null
           loc?: string | null
           typ?: string
           cdt?: string

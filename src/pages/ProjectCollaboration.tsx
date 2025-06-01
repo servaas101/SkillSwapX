@@ -222,8 +222,8 @@ export function ProjectCollaboration() {
                       <div className="flex items-center">
                         <Clock className="mr-1.5 h-4 w-4" />
                         {format(new Date(project.start_date), 'MMM d, yyyy')}
-                        {project.end_date && (
-                          <> - {format(new Date(project.end_date), 'MMM d, yyyy')}</>
+                        {project.edt && (
+                          <> - {format(new Date(project.edt), 'MMM d, yyyy')}</>
                         )}
                       </div>
                       <div className="flex items-center">
