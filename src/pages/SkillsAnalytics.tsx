@@ -31,21 +31,19 @@ export function SkillsAnalytics() {
       return;
     }
 
-    const loadData = async () => {
+    const lDat = async () => {
+      if (!usr) return;      
       try {
-        const [gapsData, staffingData, trendsData] = await Promise.all([
+        const [gDat, sDat, tDat] = await Promise.all([
           analytics.getSkillGaps(DEFAULT_ORG_ID),
           analytics.getProjectStaffing('blockchain-pilot'),
-          Promise.all([
-            analytics.trackSkillTrend('react'),
-            analytics.trackSkillTrend('blockchain'),
-            analytics.trackSkillTrend('ai')
-          ])
+          Promise.all(['react', 'blockchain', 'ai'].map(s => 
+            analytics.trackSkillTrend(s)
+          ))
         ]);
-
-        setGaps(gapsData);
-        setStaff(staffingData);
-        setTrends(trendsData.flat());
+        setGaps(gDat);
+        setStaff(sDat);
+        setTrends(tDat.flat());
       } catch (e: any) {
         console.error('Failed to load analytics:', e);
         setErr(e.message);
@@ -151,13 +149,11 @@ export function SkillsAnalytics() {
                   </h3>
                 </div>
                 <ul className="mt-2 space-y-2">
-                  {gaps
-                    .filter(g => g.gap > 2)
-                    .map(g => (
-                      <li key={g.name} className="text-sm text-red-700">
-                        • {g.name}: Level {g.current} → {g.required}
-                      </li>
-                    ))}
+                  {gaps.filter(g => g.gap > 2).map(g => (
+                    <li key={g.name} className="text-sm text-red-700">
+                      • {g.name}: Level {g.current} → {g.required}
+                    </li>
+                  ))}
                 </ul>
               </div>
 
@@ -169,13 +165,11 @@ export function SkillsAnalytics() {
                   </h3>
                 </div>
                 <ul className="mt-2 space-y-2">
-                  {gaps
-                    .filter(g => g.gap > 0)
-                    .map(g => (
-                      <li key={g.name} className="text-sm text-blue-700">
-                        • {g.name}: {g.course} ({g.duration})
-                      </li>
-                    ))}
+                  {gaps.filter(g => g.gap > 0).map(g => (
+                    <li key={g.name} className="text-sm text-blue-700">
+                      • {g.name}: {g.course} ({g.duration})
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
