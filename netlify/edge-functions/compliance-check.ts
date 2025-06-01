@@ -1,4 +1,4 @@
-import { Context } from '@netlify/edge-functions';
+import type { Context } from '@netlify/edge-functions';
 
 // Compliance rules
 const r = {
@@ -36,19 +36,29 @@ export default async (req: Request, ctx: Context) => {
     
     if (!r[t]) {
       return new Response(JSON.stringify({ error: 'Invalid compliance type' }), { 
-        status: 400 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
       });
     }
     
     const c = v(d.data, t);
     
-    return new Response(JSON.stringify({ 
-      compliant: c,
-      missing: c ? [] : r[t].required.filter(f => !d.data[f])
-    }));
+    return new Response(
+      JSON.stringify({ 
+        compliant: c,
+        missing: c ? [] : r[t].required.filter(f => !d.data[f])
+      }),
+      {
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   } catch (e) {
-    return new Response(JSON.stringify({ error: 'Failed to validate compliance' }), {
-      status: 500
-    });
+    return new Response(
+      JSON.stringify({ error: 'Failed to validate compliance' }), 
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }

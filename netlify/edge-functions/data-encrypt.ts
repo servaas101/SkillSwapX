@@ -1,4 +1,4 @@
-import { Context } from '@netlify/edge-functions';
+import type { Context } from '@netlify/edge-functions';
 
 // Encryption key from environment
 const k = process.env.ENCRYPTION_KEY;
@@ -34,10 +34,19 @@ export default async (req: Request, ctx: Context) => {
     // Encrypt sensitive data
     const c = await e(d.data);
     
-    return new Response(JSON.stringify({ encrypted: c }));
+    return new Response(
+      JSON.stringify({ encrypted: c }),
+      {
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   } catch (e) {
-    return new Response(JSON.stringify({ error: 'Failed to encrypt data' }), {
-      status: 500
-    });
+    return new Response(
+      JSON.stringify({ error: 'Failed to encrypt data' }), 
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }

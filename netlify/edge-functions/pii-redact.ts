@@ -1,4 +1,4 @@
-import { Context } from '@netlify/edge-functions';
+import type { Context } from '@netlify/edge-functions';
 
 // PII patterns to redact
 const p = {
@@ -38,18 +38,31 @@ export default async (req: Request, ctx: Context) => {
     const c = d.data;
     
     // Skip redaction for internal system data
-    if (d.sys) return new Response(JSON.stringify(d));
+    if (d.sys) {
+      return new Response(
+        JSON.stringify(d),
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
     // Redact PII from content
     const s = o(c);
     
-    return new Response(JSON.stringify({ data: s }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ data: s }),
+      {
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   } catch (e) {
-    return new Response(JSON.stringify({ error: 'Failed to process data' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ error: 'Failed to process data' }), 
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
