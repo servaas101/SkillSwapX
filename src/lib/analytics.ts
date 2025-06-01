@@ -1,4 +1,5 @@
 import { Db } from './supabase';
+import { sb } from './supabase';
 
 export class Ana {
   private db: Db;
@@ -61,3 +62,5 @@ export class Ana {
     return met;
   }
 }
+
+export const analytics = new Ana();
