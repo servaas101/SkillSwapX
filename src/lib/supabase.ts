@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
 export class Db {
-  private c: SupabaseClient;
+  public c: SupabaseClient;
 
   constructor() {
     this.c = createClient<Database>(
@@ -18,3 +18,7 @@ export class Db {
     );
   }
 }
+
+// Export Supabase client instance
+const db = new Db();
+export const sb = db.c;
