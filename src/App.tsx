@@ -15,12 +15,14 @@ import { MentorshipManagement } from './pages/MentorshipManagement';
 import { MentorProfile } from './pages/MentorProfile';
 
 function App() {
+  console.log("App rendering");
+  
   return (
     <Router>
       <AuthProvider>
         <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<LandingPage />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />

@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BrainCircuit, Shield, User, Database } from 'lucide-react';
 
 export function LandingPage() {
+  console.log("Rendering LandingPage");
+  
   return (
     <div className="bg-white">
       {/* Hero section */}

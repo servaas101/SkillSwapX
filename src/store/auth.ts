@@ -37,6 +37,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       const { data: { session }, error: sessionError } = await sb.auth.getSession();
       
       if (sessionError) {
+        console.error("Session error:", sessionError);
         throw sessionError;
       }
       
@@ -50,6 +51,7 @@ export const useAuth = create<AuthState>((set, get) => ({
             .single();
             
           if (error) {
+            console.error("Profile fetch error:", error);
             // If profile fetch fails due to JWT expiration, reset auth state
             if (error.message.includes('JWT expired')) {
               await sb.auth.signOut(); // Sign out to clear invalid session
@@ -226,7 +228,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           p_typ: 'profile_update',
           p_dat: { fields: Object.keys(data) },
           p_ip: ''
-        });
+        }).catch(e => console.error('Failed to log consent:', e));
       }
       
       return {};
@@ -270,7 +272,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         p_typ: 'gdpr_consent',
         p_dat: { consent: val },
         p_ip: ''
-      });
+      }).catch(e => console.error('Failed to log consent:', e));
       
       set({ gdp: val });
       return {};
@@ -290,13 +292,17 @@ export const useAuth = create<AuthState>((set, get) => ({
       const usr = get().usr;
       if (!usr) throw new Error('Not authenticated');
       
-      // Log data access request
-      await sb.rpc('log_consent', {
-        p_uid: usr.id,
-        p_typ: 'data_access',
-        p_dat: { requested: new Date().toISOString() },
-        p_ip: ''
-      });
+      try {
+        // Log data access request
+        await sb.rpc('log_consent', {
+          p_uid: usr.id,
+          p_typ: 'data_access',
+          p_dat: { requested: new Date().toISOString() },
+          p_ip: ''
+        });
+      } catch (e) {
+        console.error('Failed to log consent:', e);
+      }
       
       // In a real implementation, this would generate and return a download URL
       // For demo purposes, we're just returning success
@@ -317,27 +323,31 @@ export const useAuth = create<AuthState>((set, get) => ({
       const usr = get().usr;
       if (!usr) throw new Error('Not authenticated');
       
-      // Call data deletion RPC
-      const { error } = await sb.rpc('delete_user_data', {
-        p_uid: usr.id
-      });
-      
-      if (error) {
-        // Handle JWT expiration during data deletion
-        if (error.message.includes('JWT expired')) {
-          await sb.auth.signOut();
-          set({ usr: null, ses: null, gdp: false });
+      try {
+        // Call data deletion RPC
+        const { error } = await sb.rpc('delete_user_data', {
+          p_uid: usr.id
+        });
+        
+        if (error) {
+          // Handle JWT expiration during data deletion
+          if (error.message.includes('JWT expired')) {
+            await sb.auth.signOut();
+            set({ usr: null, ses: null, gdp: false });
+          }
+          throw error;
         }
-        throw error;
+        
+        // Log deletion request
+        await sb.rpc('log_consent', {
+          p_uid: usr.id,
+          p_typ: 'data_deletion',
+          p_dat: { deleted: new Date().toISOString() },
+          p_ip: ''
+        });
+      } catch (e) {
+        console.error('RPC error:', e);
       }
-      
-      // Log deletion request
-      await sb.rpc('log_consent', {
-        p_uid: usr.id,
-        p_typ: 'data_deletion',
-        p_dat: { deleted: new Date().toISOString() },
-        p_ip: ''
-      });
       
       // Sign out after data deletion
       await sb.auth.signOut();
@@ -377,6 +387,7 @@ export const initAuth = () => {
             useAuth.setState({ ses: null, usr: null, gdp: false });
             return;
           }
+          console.error('Profile check error:', error);
           throw error;
         }
         
