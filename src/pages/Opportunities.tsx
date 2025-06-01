@@ -199,11 +199,7 @@ export function Opportunities() {
                         </span>
                       )}
                       {p.edt && (
-                        <div className="mt-1 text-sm text-gray-600">
-                            <span>
-                              – {format(new Date(p.edt), 'MMM d, yyyy')}
-                            </span>
-                        </div>
+                        <> - {format(new Date(p.edt), 'MMM d, yyyy')}</>
                       )}
                     </div>
                     
