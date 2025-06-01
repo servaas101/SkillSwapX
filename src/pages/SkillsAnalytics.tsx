@@ -1,18 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../components/auth/AuthProvider';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, Cell 
-} from 'recharts';
-import { 
-  Brain, Target, TrendingUp, Users, AlertTriangle,
-  BookOpen, Award, ChevronRight 
-} from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { Brain, Target, TrendingUp, Users, AlertTriangle, BookOpen } from 'lucide-react';
 import { analytics } from '../lib/analytics';
 
-// Default organization ID for demo purposes
-const DEFAULT_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+const dOid = '550e8400-e29b-41d4-a716-446655440000';
+const btnCls = 'flex items-center rounded-lg px-4 py-2';
+const actBtn = `${btnCls} bg-blue-100 text-blue-700`;
+const inactBtn = `${btnCls} bg-gray-50 text-gray-700 hover:bg-gray-100`;
 
 export function SkillsAnalytics() {
   const { usr } = useAuthContext();
@@ -31,11 +27,11 @@ export function SkillsAnalytics() {
       return;
     }
 
-    const lDat = async () => {
+    const lDt = async () => {
       if (!usr) return;      
       try {
         const [gDat, sDat, tDat] = await Promise.all([
-          analytics.getSkillGaps(DEFAULT_ORG_ID),
+          analytics.getSkillGaps(dOid),
           analytics.getProjectStaffing('blockchain-pilot'),
           Promise.all(['react', 'blockchain', 'ai'].map(s => 
             analytics.trackSkillTrend(s)
@@ -52,7 +48,7 @@ export function SkillsAnalytics() {
       }
     };
 
-    loadData();
+    lDt();
   }, [usr, nav]);
 
   if (!usr) return null;
@@ -81,22 +77,14 @@ export function SkillsAnalytics() {
         <div className="flex space-x-4">
           <button
             onClick={() => setSel('ai')}
-            className={`flex items-center rounded-lg px-4 py-2 ${
-              sel === 'ai'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-            }`}
+            className={sel === 'ai' ? actBtn : inactBtn}
           >
             <Brain className="mr-2 h-5 w-5" />
             AI Transformation
           </button>
           <button
             onClick={() => setSel('blockchain')}
-            className={`flex items-center rounded-lg px-4 py-2 ${
-              sel === 'blockchain'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-            }`}
+            className={sel === 'blockchain' ? actBtn : inactBtn}
           >
             <Target className="mr-2 h-5 w-5" />
             Blockchain Pilot

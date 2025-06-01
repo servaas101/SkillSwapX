@@ -65,7 +65,7 @@ export function SkillList({ uid }: Props) {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium text-gray-900">Skills & Expertise</h2>
         <button
-          onClick={handleExport}
+          onClick={hExp}
           className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
         >
           <Download className="mr-2 h-4 w-4" />
@@ -103,7 +103,7 @@ export function SkillList({ uid }: Props) {
               </div>
 
               <button
-                onClick={() => handleEndorse(skill.id)}
+                onClick={() => hEnd(skill.id)}
                 className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
               >
                 <ThumbsUp className="mr-2 h-4 w-4" />
