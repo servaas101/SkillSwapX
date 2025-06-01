@@ -32,7 +32,7 @@ function App() {
             <Route path="/project-collaboration" element={<ProjectCollaboration />} />
             <Route path="/mentorship" element={<MentorshipManagement />} />
             <Route path="/mentor-profile" element={<MentorProfile />} />
-            <Route path="*" element={<Navigate to="/\" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </AuthProvider>
