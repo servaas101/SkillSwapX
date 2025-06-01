@@ -93,3 +93,4 @@ export class Skl {
 
     return jsonld.compact(data, context);
   }
+}
