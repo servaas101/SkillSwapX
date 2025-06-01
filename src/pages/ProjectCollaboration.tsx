@@ -21,7 +21,7 @@ type Project = {
   title: string;
   description: string;
   start_date: string;
-  end_date: string | null;
+  edt: string | null;
   status: string;
   partner_id: string;
   metrics: {
@@ -45,7 +45,7 @@ export function ProjectCollaboration() {
     description: '',
     partner_id: '',
     start_date: '',
-    end_date: ''
+    edt: ''
   });
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export function ProjectCollaboration() {
         p_description: newProject.description,
         p_partner_id: newProject.partner_id,
         p_start_date: newProject.start_date,
-        p_end_date: newProject.end_date || null
+        p_edt: newProject.edt || null
       });
 
       if (error) throw error;
@@ -119,7 +119,7 @@ export function ProjectCollaboration() {
         description: '',
         partner_id: '',
         start_date: '',
-        end_date: ''
+        edt: ''
       });
     } catch (e: any) {
       setErr(e.message);
@@ -389,9 +389,9 @@ export function ProjectCollaboration() {
                               </label>
                               <input
                                 type="date"
-                                id="end_date"
-                                value={newProject.end_date}
-                                onChange={(e) => setNewProject({ ...newProject, end_date: e.target.value })}
+                                id="edt"
+                                value={newProject.edt}
+                                onChange={(e) => setNewProject({ ...newProject, edt: e.target.value })}
                                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                               />
                             </div>

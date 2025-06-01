@@ -404,7 +404,7 @@ export interface Database {
           p_skl: Json
           p_bgt: Json
           p_str: string
-          p_end: string
+          p_edt: string
           p_loc: string
           p_typ: string
           p_met?: Json
