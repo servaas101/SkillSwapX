@@ -1,9 +1,13 @@
-import { sb } from './supabase';
+import { Db } from './supabase';
 import * as jsonld from 'jsonld';
 
-// Skill taxonomy service
-export const skl = {
-  // Get user skills
+export class Skl {
+  private db: Db;
+
+  constructor() {
+    this.db = new Db();
+  }
+
   async get(uid: string) {
     const { data } = await sb
       .from('skill_inventory')
@@ -22,8 +26,7 @@ export const skl = {
     return data || [];
   },
 
-  // Add or update skill
-  async upsert(
+  async uSk(
     name: string,
     category: string,
     subcategory: string | null,
@@ -39,35 +42,31 @@ export const skl = {
     });
   },
 
-  // Endorse skill
-  async endorse(skillId: string, rating: number, comment: string) {
+  async end(sid: string, rat: number, cmt: string) {
     return sb.rpc('endorse_skill', {
-      p_skill_id: skillId,
-      p_rating: rating,
-      p_comment: comment
+      p_skill_id: sid,
+      p_rating: rat,
+      p_comment: cmt
     });
   },
 
-  // Get skill gaps
-  async getGaps(empId: string, roleId: string) {
+  async gap(eid: string, rid: string) {
     const { data } = await sb.rpc('analyze_skill_gaps', {
-      p_emp_id: empId,
-      p_role_id: roleId
+      p_emp_id: eid,
+      p_role_id: rid
     });
     return data || [];
   },
 
-  // Get skill recommendations
-  async getRecommendations(empId: string) {
+  async rec(eid: string) {
     const { data } = await sb.rpc('get_skill_recommendations', {
-      p_emp_id: empId
+      p_emp_id: eid
     });
     return data || [];
   },
 
-  // Export skills as JSON-LD
-  async export(empId: string) {
-    const skills = await this.get(empId);
+  async exp(eid: string) {
+    const skl = await this.get(eid);
     
     const context = {
       "@context": {
@@ -81,7 +80,7 @@ export const skl = {
 
     const data = {
       "@type": "Person",
-      "hasSkill": skills?.map(s => ({
+      "hasSkill": skl?.map(s => ({
         "@type": "Skill",
         "name": s.skill_name,
         "skillLevel": s.proficiency_level,
@@ -94,4 +93,3 @@ export const skl = {
 
     return jsonld.compact(data, context);
   }
-};
