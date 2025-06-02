@@ -9,10 +9,8 @@ type BlogPost = {
   title: string;
   slug: string;
   excerpt: string;
-  author: {
-    fn: string;
-    ln: string;
-  };
+  fn: string;
+  ln: string;
   published_at: string;
   tags: string[];
 };
@@ -26,16 +24,8 @@ export function Blog() {
     const loadPosts = async () => {
       try {
         const { data, error } = await sb
-          .from('blog_posts')
-          .select(`
-            id,
-            title,
-            slug,
-            excerpt,
-            published_at,
-            tags,
-            author:author_id(fn, ln)
-          `)
+          .from('blog_posts_with_authors')
+          .select()
           .eq('status', 'published')
           .order('published_at', { ascending: false });
 
@@ -75,7 +65,7 @@ export function Blog() {
           <div key={index} className="bg-white shadow-sm sm:rounded-lg">
             <div className="p-6">
               {post.tags?.map(tag => (
-                <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                <span key={tag} className="mr-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
                   {tag}
                 </span>
               ))}
@@ -87,7 +77,7 @@ export function Blog() {
                 <div className="flex items-center space-x-4 text-sm text-gray-500">
                   <div className="flex items-center">
                     <User className="mr-1.5 h-4 w-4" />
-                    {post.author.fn} {post.author.ln}
+                    {post.fn} {post.ln}
                   </div>
                   <div className="flex items-center">
                     <Calendar className="mr-1.5 h-4 w-4" />

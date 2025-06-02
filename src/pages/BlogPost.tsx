@@ -8,10 +8,8 @@ type BlogPost = {
   id: string;
   title: string;
   content: string;
-  author: {
-    fn: string;
-    ln: string;
-  };
+  fn: string;
+  ln: string;
   published_at: string;
   tags: string[];
 };
@@ -27,15 +25,8 @@ export function BlogPost() {
     const loadPost = async () => {
       try {
         const { data, error } = await sb
-          .from('blog_posts')
-          .select(`
-            id,
-            title,
-            content,
-            published_at,
-            tags,
-            author:author_id(fn, ln)
-          `)
+          .from('blog_posts_with_authors')
+          .select()
           .eq('slug', slug)
           .eq('status', 'published')
           .single();
@@ -88,7 +79,7 @@ export function BlogPost() {
           <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
             <div className="flex items-center">
               <User className="mr-1.5 h-4 w-4" />
-              {post.author.fn} {post.author.ln}
+              {post.fn} {post.ln}
             </div>
             <div className="flex items-center">
               <Calendar className="mr-1.5 h-4 w-4" />
@@ -97,7 +88,7 @@ export function BlogPost() {
           </div>
 
           {post.tags?.length > 0 && (
-            <div className="mt-4 flex space-x-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {post.tags.map(tag => (
                 <span
                   key={tag}
