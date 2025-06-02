@@ -1,7 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
-// Constants for connection management
 const CONFIG = {
   maxRetries: 5,
   retryDelay: 2000,
@@ -118,4 +117,4 @@ export class Db {
 }
 
 const db = new Db();
-export const sb = db.c;
+export { sb }
