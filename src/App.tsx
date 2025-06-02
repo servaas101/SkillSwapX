@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
@@ -36,53 +36,51 @@ function App() {
   console.log("App rendering");
   
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<LandingPage />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/features" element={<Features />} />
-            <Route path="/pricing" element={<Pricing />} />
-            
-            {/* Public Routes */}
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/legal" element={<Legal />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/company" element={<Company />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/careers/:slug" element={<CareerPost />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/platform" element={<Platform />} />
-            
-            {/* Auth Routes */}
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            
-            {/* Protected Routes */}
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-            
-            {/* Feature Routes */}
-            <Route path="/privacy-settings" element={<PrivacySettings />} />
-            <Route path="/opportunities" element={<Opportunities />} />
-            <Route path="/skills-analytics" element={<SkillsAnalytics />} />
-            <Route path="/project-collaboration" element={<ProjectCollaboration />} />
-            <Route path="/mentorship" element={<MentorshipManagement />} />
-            <Route path="/mentor-profile" element={<MentorProfile />} />
-            
-            {/* 404 Route */}
-            <Route path="*" element={<Navigate to="/\" replace />} />
-          </Route>
-        </Routes>
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<LandingPage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/pricing" element={<Pricing />} />
+          
+          {/* Public Routes */}
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/legal" element={<Legal />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/company" element={<Company />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/careers/:slug" element={<CareerPost />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/platform" element={<Platform />} />
+          
+          {/* Auth Routes */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+          
+          {/* Feature Routes */}
+          <Route path="/privacy-settings" element={<PrivacySettings />} />
+          <Route path="/opportunities" element={<ProtectedRoute><Opportunities /></ProtectedRoute>} />
+          <Route path="/skills-analytics" element={<ProtectedRoute><SkillsAnalytics /></ProtectedRoute>} />
+          <Route path="/project-collaboration" element={<ProtectedRoute><ProjectCollaboration /></ProtectedRoute>} />
+          <Route path="/mentorship" element={<ProtectedRoute><MentorshipManagement /></ProtectedRoute>} />
+          <Route path="/mentor-profile" element={<ProtectedRoute><MentorProfile /></ProtectedRoute>} />
+          
+          {/* 404 Route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </AuthProvider>
   );
 }
 
