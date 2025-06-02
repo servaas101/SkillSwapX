@@ -136,14 +136,12 @@ export const useAuth = create<AuthState>((set, get) => ({
   signIn: async (em, pwd) => {
     try {
       set({ ldg: true });
+      // Clear any existing session
+      localStorage.removeItem('sb.session');
       
       const { data, error } = await sb.auth.signInWithPassword({
         email: em,
-        password: pwd,
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-          emailRedirectTo: `${window.location.origin}/dashboard`
-        }
+        password: pwd
       });
       
       if (error) throw error;
@@ -151,14 +149,16 @@ export const useAuth = create<AuthState>((set, get) => ({
       // Get user profile data
       const { data: profile, error: profErr } = await sb
         .from('profiles')
-        .select('gdp')
+        .select('*')
         .eq('uid', data.user.id)
         .single();
         
       if (profErr && profErr.code !== 'PGRST116') throw profErr;
       
       // Store session in localStorage
-      localStorage.setItem('sb.session', JSON.stringify(data.session));
+      if (data.session) {
+        localStorage.setItem('sb.session', JSON.stringify(data.session));
+      }
       
       set({ 
         usr: data.user, 

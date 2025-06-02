@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../store/auth';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 export function SignInForm() {
   const [em, setEm] = useState('');
@@ -9,6 +9,9 @@ export function SignInForm() {
   const [err, setErr] = useState('');
   
   const { signIn, ldg } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +24,11 @@ export function SignInForm() {
     
     const { err: signInErr } = await signIn(em, pwd);
     
-    if (signInErr) {
+    if (signInErr) { 
       setErr(signInErr);
+    } else {
+      // Successful login - redirect to intended destination
+      navigate(from, { replace: true });
     }
   };
 
