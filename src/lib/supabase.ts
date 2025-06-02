@@ -16,23 +16,25 @@ export class Db {
   private constructor() {
     const config = this.loadConfig();
     
+    if (!config.url || !config.key) {
+      throw new Error('Missing Supabase configuration');
+    }
+
     // Configure global fetch interceptor for error handling
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
       try {
         const response = await originalFetch(...args);
-        if (!response.ok && response.status === 401) {
+        if (!response.ok) {
+          if (response.status === 401) {
           // Handle unauthorized access
-          const authError = new Error('Unauthorized');
-          authError.name = 'AuthError';
-          throw authError;
+            await this.client.auth.signOut();
+            throw new Error('Session expired');
+          }
+          throw new Error(`Request failed: ${response.statusText}`);
         }
         return response;
       } catch (error) {
-        if (error.name === 'AuthError') {
-          // Clear invalid session
-          await this.client.auth.signOut();
-        }
         throw error;
       }
     };
@@ -42,69 +44,12 @@ export class Db {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        flowType: 'implicit',
-        storageKey: 'sb.session',
-        cookieOptions: {
-          name: 'sb.auth.token',
-          lifetime: 28800,
-          domain: import.meta.env.VITE_AUTH_COOKIE_DOMAIN,
-          sameSite: import.meta.env.VITE_AUTH_COOKIE_SAME_SITE || 'lax',
-          secure: import.meta.env.VITE_AUTH_COOKIE_SECURE === 'true',
-        },
-        debug: import.meta.env.DEV,
-        storage: {
-          getItem: (key) => {
-            try {
-              const storage = this.isSecureContext() ? localStorage : sessionStorage;
-              const value = storage.getItem(key);
-              return value ? JSON.parse(value) : null;
-            } catch {
-              return null;
-            }
-          },
-          setItem: (key, value) => {
-            try {
-              const storage = this.isSecureContext() ? localStorage : sessionStorage;
-              storage.setItem(key, JSON.stringify(value));
-            } catch (e) {
-              console.error('Storage error:', e);
-            }
-          },
-          removeItem: (key) => {
-            try {
-              const storage = this.isSecureContext() ? localStorage : sessionStorage;
-              storage.removeItem(key);
-            } catch (e) {
-              console.error('Storage error:', e);
-            }
-          }
-        }
+        flowType: 'pkce'
       },
       global: {
         headers: {
           'x-client-info': `skillswapx@${import.meta.env.VITE_APP_VERSION || '0.1.0'}`,
-          'x-client-env': import.meta.env.MODE,
-          'x-correlation-id': crypto.randomUUID()
-        }
-      },
-      db: {
-        schema: 'public',
-        transformers: [
-          (data) => {
-            // Remove null values from response
-            if (data && typeof data === 'object') {
-              Object.keys(data).forEach(key => {
-                if (data[key] === null) delete data[key];
-              });
-            }
-            return data;
-          }
-        ]
-      },
-      realtime: {
-        params: {
-          eventsPerSecond: 10,
-          heartbeat: true
+          'x-client-env': import.meta.env.MODE
         }
       },
       persistSession: true
