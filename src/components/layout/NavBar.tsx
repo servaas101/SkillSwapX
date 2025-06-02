@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../auth/AuthProvider';
-import { Menu, X, LogOut, User, Settings, BrainCircuit, Book, Info, CreditCard, HelpCircle, MessageSquare, Scale, Building2, FileText } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings, BrainCircuit, Book, Info, CreditCard, HelpCircle, MessageSquare, Scale, Building2, FileText, Briefcase, Home } from 'lucide-react';
 
 interface NavItem {
   name: string;
