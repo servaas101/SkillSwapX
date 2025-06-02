@@ -102,26 +102,14 @@ export const useAuth = create<AuthState>((set, get) => ({
   signUp: async (em, pwd) => {
     try {
       set({ ldg: true });
-      const { data: authData, error: authError } = await sb.auth.signUp({
+      const { data, error } = await sb.auth.signUp({
         email: em,
         password: pwd
       });
       
-      if (authError) throw authError;
+      if (error) throw error;
       
-      if (authData.user) {
-        const { error: profErr } = await sb
-          .from('profiles')
-          .insert({
-            uid: authData.user.id,
-            em: authData.user.email,
-            cdt: new Date().toISOString(),
-            udt: new Date().toISOString(),
-            gdp: false
-          });
-          
-        if (profErr) throw profErr;
-      }
+      // Profile is created automatically via database trigger
       
       return { err: undefined };
     } catch (e: any) {
