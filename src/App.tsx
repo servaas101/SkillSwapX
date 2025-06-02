@@ -33,7 +33,7 @@ import { MentorshipManagement } from './pages/MentorshipManagement';
 import { MentorProfile } from './pages/MentorProfile';
 
 function App() {
-  console.log("App rendering");
+  console.log("Rendering application root component");
   
   return (
     <AuthProvider>
@@ -77,7 +77,7 @@ function App() {
           <Route path="/mentor-profile" element={<ProtectedRoute><MentorProfile /></ProtectedRoute>} />
           
           {/* 404 Route */}
-          <Route path="*" element={<Navigate to="/\" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </AuthProvider>

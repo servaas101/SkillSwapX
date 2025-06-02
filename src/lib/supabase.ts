@@ -1,14 +1,14 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
-const CONFIG = {
+const CONNECTION_CONFIG = {
   maxRetries: 5,
   retryDelay: 2000,
   timeout: 10000
 } as const;
 
-export class Db {
-  public c: SupabaseClient;
+export class DatabaseClient {
+  public client: SupabaseClient;
 
   constructor() {
     const url = import.meta.env.VITE_SUPABASE_URL?.trim();
@@ -29,7 +29,7 @@ export class Db {
       throw new Error('Invalid Supabase URL format');
     }
 
-    this.c = createClient<Database>(
+    this.client = createClient<Database>(
       url,
       key,
       {
@@ -68,11 +68,11 @@ export class Db {
     let retries = 0;
     let lastError = null;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), CONFIG.timeout);
+    const timeoutId = setTimeout(() => controller.abort(), CONNECTION_CONFIG.timeout);
 
-    while (retries < CONFIG.maxRetries) {
+    while (retries < CONNECTION_CONFIG.maxRetries) {
       try {
-        const { error } = await this.c
+        const { error } = await this.client
           .from('auth_events')
           .select('id')
           .limit(1)
@@ -85,22 +85,22 @@ export class Db {
         retries++;
         console.warn(`Supabase connection attempt ${retries} failed:`, e);
         
-        if (retries === CONFIG.maxRetries) break;
+        if (retries === CONNECTION_CONFIG.maxRetries) break;
         
-        await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay));
+        await new Promise(resolve => setTimeout(resolve, CONNECTION_CONFIG.retryDelay));
       }
     }
     clearTimeout(timeoutId);
     
     throw new Error(
-      `Failed to connect to Supabase after ${CONFIG.maxRetries} attempts. ` +
+      `Failed to connect to Supabase after ${CONNECTION_CONFIG.maxRetries} attempts. ` +
       `Last error: ${lastError?.message || 'Unknown error'}`
     );
   }
 
   private setupErrorHandling() {
     // Handle auth errors
-    this.c.auth.onAuthStateChange((event, session) => {
+    this.client.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         // Clear all storage on sign out
         localStorage.clear();
@@ -115,6 +115,3 @@ export class Db {
     });
   }
 }
-
-const db = new Db();
-export { sb }
