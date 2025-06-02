@@ -1,9 +1,12 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
-const MAX_RETRIES = 5;
-const RETRY_DELAY = 2000;
-const TIMEOUT = 10000;
+// Constants for connection management
+const CONFIG = {
+  maxRetries: 5,
+  retryDelay: 2000,
+  timeout: 10000
+} as const;
 
 export class Db {
   public c: SupabaseClient;
@@ -66,9 +69,9 @@ export class Db {
     let retries = 0;
     let lastError = null;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+    const timeoutId = setTimeout(() => controller.abort(), CONFIG.timeout);
 
-    while (retries < MAX_RETRIES) {
+    while (retries < CONFIG.maxRetries) {
       try {
         const { error } = await this.c
           .from('auth_events')
@@ -83,15 +86,15 @@ export class Db {
         retries++;
         console.warn(`Supabase connection attempt ${retries} failed:`, e);
         
-        if (retries === MAX_RETRIES) break;
+        if (retries === CONFIG.maxRetries) break;
         
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay));
       }
     }
     clearTimeout(timeoutId);
     
     throw new Error(
-      `Failed to connect to Supabase after ${MAX_RETRIES} attempts. ` +
+      `Failed to connect to Supabase after ${CONFIG.maxRetries} attempts. ` +
       `Last error: ${lastError?.message || 'Unknown error'}`
     );
   }
