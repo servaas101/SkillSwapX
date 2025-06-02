@@ -179,15 +179,34 @@ export const useAuth = create<AuthState>((set, get) => ({
   signOut: async () => {
     try {
       set({ ldg: true });
+      // Clear all auth-related storage
+      localStorage.removeItem('sb.session');
+      sessionStorage.clear();
+      document.cookie = 'sb-access-token=; Max-Age=0; path=/;';
+      document.cookie = 'sb-refresh-token=; Max-Age=0; path=/;';
+      
+      // Log auth event before signing out
+      try {
+        await sb.rpc('log_auth_event', {
+          p_event_type: 'sign_out',
+          p_metadata: { timestamp: new Date().toISOString() }
+        });
+      } catch (e) {
+        console.warn('Failed to log sign out event:', e);
+      }
+      
+      // Sign out from Supabase
       // Clear local storage and cookies
       localStorage.removeItem('sb.session');
       document.cookie = 'sb.auth.token=; Max-Age=0; path=/;';
       
       await sb.auth.signOut();
+      
+      // Reset auth state
       set({ usr: null, ses: null, gdp: false });
     } catch (e) {
       console.error('Sign out error:', e);
-      // Ensure auth state is reset even if sign out fails
+      // Force reset auth state even if sign out fails
       set({ usr: null, ses: null, gdp: false });
     } finally {
       set({ ldg: false });

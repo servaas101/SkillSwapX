@@ -16,6 +16,7 @@ export class Db {
   private constructor() {
     const config = this.loadConfig();
     
+    // Configure client with enhanced security options
     if (!config.url || !config.key) {
       throw new Error('Missing Supabase configuration');
     }
@@ -44,7 +45,32 @@ export class Db {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        flowType: 'pkce'
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+        storage: {
+          getItem: (key) => {
+            try {
+              const value = localStorage.getItem(key);
+              return value ? JSON.parse(value) : null;
+            } catch {
+              return null;
+            }
+          },
+          setItem: (key, value) => {
+            try {
+              localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+              console.error('Storage error:', e);
+            }
+          },
+          removeItem: (key) => {
+            try {
+              localStorage.removeItem(key);
+            } catch (e) {
+              console.error('Storage error:', e);
+            }
+          }
+        }
       },
       global: {
         headers: {
