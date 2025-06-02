@@ -395,3 +395,5 @@ export const initAuth = () => {
     }
   });
 };
+
+export { useAuth }
