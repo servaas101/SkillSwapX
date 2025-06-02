@@ -16,12 +16,41 @@ export class Db {
   private constructor() {
     const config = this.loadConfig();
     
+    // Configure global fetch interceptor for error handling
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      try {
+        const response = await originalFetch(...args);
+        if (!response.ok && response.status === 401) {
+          // Handle unauthorized access
+          const authError = new Error('Unauthorized');
+          authError.name = 'AuthError';
+          throw authError;
+        }
+        return response;
+      } catch (error) {
+        if (error.name === 'AuthError') {
+          // Clear invalid session
+          await this.client.auth.signOut();
+        }
+        throw error;
+      }
+    };
+
     this.client = createClient<Database>(config.url, config.key, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        flowType: 'pkce',
+        flowType: 'implicit',
+        storageKey: 'sb.session',
+        cookieOptions: {
+          name: 'sb.auth.token',
+          lifetime: 28800,
+          domain: import.meta.env.VITE_AUTH_COOKIE_DOMAIN,
+          sameSite: import.meta.env.VITE_AUTH_COOKIE_SAME_SITE || 'lax',
+          secure: import.meta.env.VITE_AUTH_COOKIE_SECURE === 'true',
+        },
         debug: import.meta.env.DEV,
         storage: {
           getItem: (key) => {
@@ -54,17 +83,31 @@ export class Db {
       global: {
         headers: {
           'x-client-info': `skillswapx@${import.meta.env.VITE_APP_VERSION || '0.1.0'}`,
-          'x-client-env': import.meta.env.MODE
+          'x-client-env': import.meta.env.MODE,
+          'x-correlation-id': crypto.randomUUID()
         }
       },
       db: {
-        schema: 'public'
+        schema: 'public',
+        transformers: [
+          (data) => {
+            // Remove null values from response
+            if (data && typeof data === 'object') {
+              Object.keys(data).forEach(key => {
+                if (data[key] === null) delete data[key];
+              });
+            }
+            return data;
+          }
+        ]
       },
       realtime: {
         params: {
-          eventsPerSecond: 10
+          eventsPerSecond: 10,
+          heartbeat: true
         }
-      }
+      },
+      persistSession: true
     });
     
     this.validateConnection();

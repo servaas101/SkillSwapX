@@ -32,6 +32,19 @@ export const useAuth = create<AuthState>((set, get) => ({
   loadUsr: async () => {
     try {
       set({ ldg: true });
+      // Check for existing session in storage
+      const storedSession = localStorage.getItem('sb.session');
+      if (storedSession) {
+        try {
+          const session = JSON.parse(storedSession);
+          if (session?.access_token) {
+            sb.auth.setSession(session);
+          }
+        } catch (e) {
+          console.warn('Invalid stored session:', e);
+          localStorage.removeItem('sb.session');
+        }
+      }
       
       // Get current session
       const { data: { session }, error: sessionError } = await sb.auth.getSession();
@@ -123,10 +136,15 @@ export const useAuth = create<AuthState>((set, get) => ({
   signIn: async (em, pwd) => {
     try {
       set({ ldg: true });
+      // Clear any existing session
+      await sb.auth.signOut();
       
       const { data, error } = await sb.auth.signInWithPassword({
         email: em,
-        password: pwd
+        password: pwd,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
       });
       
       if (error) throw error;
@@ -161,6 +179,10 @@ export const useAuth = create<AuthState>((set, get) => ({
   signOut: async () => {
     try {
       set({ ldg: true });
+      // Clear local storage and cookies
+      localStorage.removeItem('sb.session');
+      document.cookie = 'sb.auth.token=; Max-Age=0; path=/;';
+      
       await sb.auth.signOut();
       set({ usr: null, ses: null, gdp: false });
     } catch (e) {
