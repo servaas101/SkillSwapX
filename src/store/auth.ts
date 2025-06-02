@@ -394,6 +394,4 @@ export const initAuth = () => {
       loadUsr();
     }
   });
-};
-
-export { useAuth }
+}
