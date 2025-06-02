@@ -1,126 +1,91 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Briefcase, MapPin, Clock, ArrowLeft, Loader2 } from 'lucide-react';
-import { sb } from '../lib/supabase';
+import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
-type CareerPosting = {
-  id: string;
-  title: string;
-  description: string;
-  department: string;
-  location: string;
-  type: string;
-  requirements: string[];
-};
-
-export function CareerPost() {
-  const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
-  const [posting, setPosting] = useState<CareerPosting | null>(null);
+export const CareerPost = () => {
+  const { slug } = useParams();
+  const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadPosting = async () => {
+    const fetchCareerPost = async () => {
       try {
-        const { data, error } = await sb
+        const { data, error } = await supabase
           .from('career_postings')
           .select('*')
           .eq('slug', slug)
-          .eq('status', 'open')
           .single();
 
         if (error) throw error;
-        setPosting(data);
-      } catch (e) {
-        console.error('Failed to load career posting:', e);
-        setError('Failed to load position details');
+        setPost(data);
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    if (slug) {
-      loadPosting();
-    }
+    fetchCareerPost();
   }, [slug]);
 
   if (loading) {
     return (
-      <div className="flex justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
-  if (error || !posting) {
+  if (error) {
     return (
-      <div className="rounded-md bg-red-50 p-4">
-        <p className="text-sm text-red-700">{error || 'Position not found'}</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-600">Error loading career post: {error}</div>
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-600">Career post not found</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 shadow-sm sm:rounded-lg">
-        <button
-          onClick={() => navigate('/careers')}
-          className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Careers
-        </button>
-
-        <div className="mt-4">
-          <h1 className="text-3xl font-bold text-gray-900">{posting.title}</h1>
-          
-          <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-            <div className="flex items-center">
-              <Briefcase className="mr-1.5 h-4 w-4" />
-              {posting.department}
-            </div>
-            <div className="flex items-center">
-              <MapPin className="mr-1.5 h-4 w-4" />
-              {posting.location}
-            </div>
-            <div className="flex items-center">
-              <Clock className="mr-1.5 h-4 w-4" />
-              {posting.type}
-            </div>
-          </div>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="mb-6">
+          <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            {post.department}
+          </span>
+          <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium ml-2">
+            {post.type}
+          </span>
+          <span className="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium ml-2">
+            {post.location}
+          </span>
         </div>
-      </div>
-
-      <div className="bg-white p-6 shadow-sm sm:rounded-lg">
+        
         <div className="prose max-w-none">
-          <h2 className="text-xl font-bold text-gray-900">About the Role</h2>
-          {posting.description.split('\n').map((paragraph, index) => (
-            <p key={index} className="mb-4 text-gray-600">
-              {paragraph}
-            </p>
-          ))}
-
-          <h2 className="mt-8 text-xl font-bold text-gray-900">Requirements</h2>
-          <ul className="mt-4 space-y-2">
-            {posting.requirements.map((requirement, index) => (
-              <li key={index} className="flex items-start">
-                <span className="mr-2 mt-1 flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"></span>
-                <span className="text-gray-600">{requirement}</span>
-              </li>
+          <p className="text-gray-700 mb-6">{post.description}</p>
+          
+          <h2 className="text-xl font-semibold mb-4">Requirements</h2>
+          <ul className="list-disc pl-5 mb-6">
+            {post.requirements?.map((requirement, index) => (
+              <li key={index} className="text-gray-700 mb-2">{requirement}</li>
             ))}
           </ul>
         </div>
 
         <div className="mt-8">
-          <button
-            type="button"
-            className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Apply for this Position
+          <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            Apply Now
           </button>
         </div>
       </div>
     </div>
   );
-}
+};
