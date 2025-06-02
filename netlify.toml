@@ -1,30 +1,40 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  edge_functions = "netlify/edge-functions"
+  edge_functions = "netlify/edge-functions" 
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS = "--include=dev"
-  NODE_ENV = "production"
+  VITE_APP_VERSION = "0.1.0"
 
 [dev]
   command = "npm run dev"
   targetPort = 5173
+  port = 8888
+  framework = "#custom"
 
 [context.production]
   environment = { NODE_ENV = "production" }
-  [context.production.environment]
-    # Supabase environment variables are managed in Netlify dashboard
-    VITE_SUPABASE_URL = "https://your-project.supabase.co"
-    VITE_SUPABASE_ANON_KEY = "your-anon-key"
 
 [context.deploy-preview]
   environment = { NODE_ENV = "preview" }
-  [context.deploy-preview.environment]
-    # Preview environment uses same Supabase project but with restricted access
-    VITE_SUPABASE_URL = "https://your-project.supabase.co"
-    VITE_SUPABASE_ANON_KEY = "your-preview-anon-key"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self' https://*.supabase.co; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.pexels.com https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co;"
 
 [[edge_functions]]
   path = "/api/privacy/*"

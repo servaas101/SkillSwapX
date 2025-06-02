@@ -1,53 +1,68 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
-// Connection retry configuration
-const RETRY_ATTEMPTS = 3;
-const RETRY_DELAY = 1000; // ms
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000;
+const TIMEOUT = 30000;
 
 export class Db {
   private static instance: Db;
   private client: ReturnType<typeof createClient<Database>>;
-  private env: {
-    url: string;
-    key: string;
-    status: 'connecting' | 'connected' | 'error';
-    lastError?: Error;
-  };
+  private status: 'connecting' | 'connected' | 'error' = 'connecting';
+  private lastError?: Error;
+  private retryCount = 0;
+  private retryTimeout?: NodeJS.Timeout;
 
   private constructor() {
-    this.env = this.loadConfig();
-    this.env.status = 'connecting';
+    const config = this.loadConfig();
     
-    this.client = createClient<Database>(this.env.url, this.env.key, {
+    this.client = createClient<Database>(config.url, config.key, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
         flowType: 'pkce',
+        debug: import.meta.env.DEV,
         storage: {
-          // Use secure storage based on environment
           getItem: (key) => {
             try {
               const storage = this.isSecureContext() ? localStorage : sessionStorage;
-              return JSON.parse(storage.getItem(key) || '');
+              const value = storage.getItem(key);
+              return value ? JSON.parse(value) : null;
             } catch {
               return null;
             }
           },
           setItem: (key, value) => {
-            const storage = this.isSecureContext() ? localStorage : sessionStorage;
-            storage.setItem(key, JSON.stringify(value));
+            try {
+              const storage = this.isSecureContext() ? localStorage : sessionStorage;
+              storage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+              console.error('Storage error:', e);
+            }
           },
           removeItem: (key) => {
-            const storage = this.isSecureContext() ? localStorage : sessionStorage;
-            storage.removeItem(key);
+            try {
+              const storage = this.isSecureContext() ? localStorage : sessionStorage;
+              storage.removeItem(key);
+            } catch (e) {
+              console.error('Storage error:', e);
+            }
           }
         }
       },
       global: {
         headers: {
-          'x-client-info': 'skillswapx-identity@0.1.0'
+          'x-client-info': `skillswapx@${import.meta.env.VITE_APP_VERSION || '0.1.0'}`,
+          'x-client-env': import.meta.env.MODE
+        }
+      },
+      db: {
+        schema: 'public'
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10
         }
       }
     });
@@ -56,49 +71,61 @@ export class Db {
   }
 
   private async validateConnection() {
-    let attempts = 0;
-    
-    while (attempts < RETRY_ATTEMPTS) {
-      try {
-        // Test connection with a simple query
-        const { error } = await this.client
-          .from('profiles')
-          .select('id')
-          .limit(1);
-          
-        if (error) throw error;
-        
-        this.env.status = 'connected';
-        return;
-      } catch (e) {
-        attempts++;
-        this.env.lastError = e as Error;
-        
-        if (attempts < RETRY_ATTEMPTS) {
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        }
+    if (this.retryCount >= MAX_RETRIES) {
+      this.status = 'error';
+      return;
+    }
+
+    try {
+      const { error } = await Promise.race([
+        this.client.from('profiles').select('id').limit(1),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout')), TIMEOUT)
+        )
+      ]);
+
+      if (error) throw error;
+      
+      this.status = 'connected';
+      this.retryCount = 0;
+      this.lastError = undefined;
+      
+      if (this.retryTimeout) {
+        clearTimeout(this.retryTimeout);
+        this.retryTimeout = undefined;
+      }
+    } catch (e) {
+      this.lastError = e as Error;
+      this.retryCount++;
+
+      if (this.retryCount < MAX_RETRIES) {
+        this.retryTimeout = setTimeout(() => {
+          this.validateConnection();
+        }, RETRY_DELAY * Math.pow(2, this.retryCount - 1));
+      } else {
+        this.status = 'error';
+        console.error('Failed to connect to Supabase after retries:', this.lastError);
       }
     }
-    
-    this.env.status = 'error';
-    console.error('Failed to connect to Supabase:', this.env.lastError);
-  }
-
-  private isSecureContext(): boolean {
-    return typeof window !== 'undefined' && window.isSecureContext;
   }
 
   private loadConfig() {
-    const url = import.meta.env.VITE_SUPABASE_URL;
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const url = import.meta.env.VITE_SUPABASE_URL?.trim();
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
     if (!url || !key) {
-      throw new Error(
-        'Missing Supabase configuration. Check your environment variables.'
-      );
+      try {
+        throw new Error(
+          'Missing Supabase configuration. Check environment variables:\n' +
+          'VITE_SUPABASE_URL: ' + (url ? '✓' : '✗') + '\n' +
+          'VITE_SUPABASE_ANON_KEY: ' + (key ? '✓' : '✗')
+        );
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
     }
 
-    // Validate URL format
     try {
       const parsedUrl = new URL(url);
       if (!parsedUrl.hostname.includes('supabase.co')) {
@@ -108,12 +135,46 @@ export class Db {
       throw new Error('Invalid Supabase URL format');
     }
 
-    // Validate key format (should be a JWT-like string)
     if (!/^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/.test(key)) {
       throw new Error('Invalid Supabase anon key format');
     }
 
-    return { url, key, status: 'connecting' as const };
+    return { url, key };
+  }
+
+  private isSecureContext(): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.isSecureContext;
+  }
+
+  public getClient() {
+    if (this.status === 'error') {
+      throw new Error('Supabase client not available: ' + this.lastError?.message);
+    }
+    return this.client;
+  }
+
+  public getStatus() {
+    return {
+      status: this.status,
+      error: this.lastError?.message,
+      retries: this.retryCount
+    };
+  }
+
+  public async reconnect() {
+    try {
+      if (this.status === 'error') {
+        this.retryCount = 0;
+        this.status = 'connecting';
+        await this.validateConnection();
+      }
+    } catch (e) {
+      console.error('Reconnection failed:', e);
+      throw e;
+    }
   }
 
   public static getInstance(): Db {
@@ -122,23 +183,10 @@ export class Db {
     }
     return Db.instance;
   }
-
-  public getClient() {
-    if (this.env.status === 'error') {
-      throw new Error('Supabase client not available: Connection failed');
-    }
-    return this.client;
-  }
-
-  public getStatus() {
-    return {
-      status: this.env.status,
-      error: this.env.lastError?.message
-    };
-  }
 }
 
 // Export singleton instance
 const db = Db.getInstance();
 export const sb = db.getClient();
 export const getDbStatus = () => db.getStatus();
+export const reconnectDb = () => db.reconnect();
