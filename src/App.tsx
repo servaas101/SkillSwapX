@@ -3,6 +3,9 @@ import { AuthProvider } from './components/auth/AuthProvider';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 import { LandingPage } from './pages/LandingPage';
+import { About } from './pages/About';
+import { Features } from './pages/Features';
+import { Pricing } from './pages/Pricing';
 import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
@@ -40,6 +43,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<LandingPage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/pricing" element={<Pricing />} />
             
             {/* Public Routes */}
             <Route path="/about" element={<About />} />
