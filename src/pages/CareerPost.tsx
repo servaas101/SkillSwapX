@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { sb } from '../lib/supabase';
 
 export const CareerPost = () => {
   const { slug } = useParams();
@@ -11,7 +11,7 @@ export const CareerPost = () => {
   useEffect(() => {
     const fetchCareerPost = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await sb
           .from('career_postings')
           .select('*')
           .eq('slug', slug)
