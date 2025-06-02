@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../store/auth';
+import { PostgrestError } from '@supabase/supabase-js';
 import { User, Mail, Phone, MapPin, Save, Trash2 } from 'lucide-react';
 import { sb } from '../../lib/supabase';
 
@@ -24,9 +25,19 @@ export function ProfileForm() {
       try {
         const { data, error } = await sb
           .from('profiles')
-          .select('fn, ln, em, ph, loc, bio')
+          .select('fn,ln,em,ph,loc,bio')
           .eq('uid', usr.id)
           .single();
+        
+        if (error?.code === 'PGRST116') {
+          setFn('');
+          setLn('');
+          setEm(usr.email || '');
+          setPh('');
+          setLoc('');
+          setBio('');
+          return;
+        }
         
         if (error) throw error;
         

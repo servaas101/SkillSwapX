@@ -89,32 +89,28 @@ export const useAuth = create<AuthState>((set, get) => ({
   signUp: async (em, pwd) => {
     try {
       set({ ldg: true });
-      
-      const { data, error } = await sb.auth.signUp({
+      const { data: authData, error: authError } = await sb.auth.signUp({
         email: em,
-        password: pwd,
+        password: pwd
       });
       
-      if (error) throw error;
+      if (authError) throw authError;
       
-      if (data.user) {
-        // Create profile for new user
+      if (authData.user) {
         const { error: profErr } = await sb
           .from('profiles')
-          .insert([
-            {
-              uid: data.user.id,
-              em: data.user.email,
-              cdt: new Date().toISOString(),
-              udt: new Date().toISOString(),
-              gdp: false
-            }
-          ]);
+          .insert({
+            uid: authData.user.id,
+            em: authData.user.email,
+            cdt: new Date().toISOString(),
+            udt: new Date().toISOString(),
+            gdp: false
+          });
           
         if (profErr) throw profErr;
       }
       
-      return {};
+      return { err: undefined };
     } catch (e: any) {
       console.error('Sign up error:', e);
       return { err: e.message || 'Sign up failed' };
@@ -244,18 +240,16 @@ export const useAuth = create<AuthState>((set, get) => ({
   setGdp: async (val) => {
     try {
       set({ ldg: true });
+      const usr = get().usr;
+      if (!usr) throw new Error('Not authenticated');
       
       const usr = get().usr;
       if (!usr) throw new Error('Not authenticated');
       
-      // Update GDPR consent status
-      const { error } = await sb
-        .from('profiles')
-        .update({
-          gdp: val,
-          gdl: new Date().toISOString()
-        })
-        .eq('uid', usr.id);
+      const { data, error } = await sb.rpc('update_gdpr_consent', {
+        p_consent: val,
+        p_ip: ''
+      });
         
       if (error) {
         // Handle JWT expiration during GDPR consent update
@@ -265,14 +259,6 @@ export const useAuth = create<AuthState>((set, get) => ({
         }
         throw error;
       }
-      
-      // Log consent
-      await sb.rpc('log_consent', {
-        p_uid: usr.id,
-        p_typ: 'gdpr_consent',
-        p_dat: { consent: val },
-        p_ip: ''
-      }).catch(e => console.error('Failed to log consent:', e));
       
       set({ gdp: val });
       return {};
