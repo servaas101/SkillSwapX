@@ -89,6 +89,7 @@ export function SignUpForm() {
             <input
               id="email"
               type="email"
+              autoComplete="username"
               value={em}
               onChange={(e) => setEm(e.target.value)}
               className="block w-full rounded-md border border-gray-300 py-3 pl-10 pr-3 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -109,6 +110,7 @@ export function SignUpForm() {
             <input
               id="password"
               type="password"
+              autoComplete="new-password"
               value={pwd}
               onChange={(e) => setPwd(e.target.value)}
               className="block w-full rounded-md border border-gray-300 py-3 pl-10 pr-3 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
@@ -130,6 +132,7 @@ export function SignUpForm() {
             <input
               id="confirmPassword"
               type="password"
+              autoComplete="new-password"
               value={cpw}
               onChange={(e) => setCpw(e.target.value)}
               className="block w-full rounded-md border border-gray-300 py-3 pl-10 pr-3 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
