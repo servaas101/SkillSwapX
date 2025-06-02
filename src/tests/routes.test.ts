@@ -206,6 +206,7 @@ describe('Routing System', () => {
           <AuthProvider>
             <Routes>
               <Route path="*" element={<div>404 Not Found</div>} />
+              }
             </Routes>
           </AuthProvider>
         </MemoryRouter>
