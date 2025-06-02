@@ -18,6 +18,7 @@ import { Privacy } from './pages/Privacy';
 import { Terms } from './pages/Terms';
 import { Company } from './pages/Company';
 import { Careers } from './pages/Careers';
+import { CareerPost } from './pages/CareerPost';
 import { Blog } from './pages/Blog';
 import { BlogPost } from './pages/BlogPost';
 import { Platform } from './pages/Platform';
