@@ -33,7 +33,7 @@ export class DatabaseClient {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
-          storageKey: 'supabase.session',
+          storageKey: 'supabase.session', // Match storage key used in auth store
           flowType: 'pkce',
           debug: import.meta.env.DEV
         },
@@ -95,12 +95,15 @@ export class DatabaseClient {
   private setupError() {
     this.supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
-        localStorage.clear();
+        localStorage.removeItem('supabase.session');
+        localStorage.removeItem('supabase.session.expires');
         sessionStorage.clear();
       } else if (event === 'TOKEN_REFRESHED') {
-        const storage = localStorage.getItem('supabase.session') ? localStorage : sessionStorage;
+        const storage = localStorage.getItem('supabase.session') ? 
+          localStorage : sessionStorage;
         if (session) {
-          storage.setItem('supabase.session.expires', session.expires_at);
+          storage.setItem('supabase.session.expires', 
+            session.expires_at?.toString() || '');
         }
       }
     });

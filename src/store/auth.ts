@@ -136,68 +136,29 @@ export const useAuth = create<AuthState>((set, get) => ({
   signIn: async (em, pwd, remember = false) => {
     try {
       set({ ldg: true });
-      
-      // Clear existing sessions
-      const storage = remember ? localStorage : sessionStorage;
-      storage.clear();
+      const storage = remember ? localStorage : sessionStorage; 
       
       const { data, error } = await sb.auth.signInWithPassword({
         email: em,
         password: pwd,
         options: {
           persistSession: remember,
-          // Add CSRF protection
-          headers: {
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
+          storageKey: 'supabase.session'
         }
       });
       
       if (error) throw error;
       
-      // Verify session and get profile
-      const { data: profile, error: profErr } = await sb
-        .from('profiles')
-        .select('*')
-        .eq('uid', data.user.id)
-        .single();
-        
-      if (profErr) {
-        if (profErr.code === 'PGRST116') {
-          console.warn('Profile not found, will be created');
-        } else {
-          throw profErr;
-        }
-      }
-      
-      // Store session
+      // Store session with expiry
       if (data.session) {
-        // Add session expiry check
-        const expiresAt = new Date(data.session.expires_at);
-        if (expiresAt < new Date()) {
-          throw new Error('Session expired');
-        }
-        
-        // Store session with security flags
-        storage.setItem('sb.session', JSON.stringify(data.session));
-        storage.setItem('sb.session.expires', expiresAt.toISOString());
+        storage.setItem('supabase.session', JSON.stringify(data.session));
+        storage.setItem('supabase.session.expires', data.session.expires_at?.toString() || '');
       }
       
       set({ 
         usr: data.user, 
-        ses: data.session,
-        gdp: profile?.gdp || false
+        ses: data.session
       });
-      
-      // Log successful auth
-      try {
-        await sb.rpc('log_auth_event', {
-          p_event_type: 'sign_in',
-          p_metadata: { timestamp: new Date().toISOString() }
-        });
-      } catch (e) {
-        console.warn('Failed to log auth event:', e);
-      }
       
       return { usr: data.user, ses: data.session };
     } catch (e: any) {
@@ -214,27 +175,15 @@ export const useAuth = create<AuthState>((set, get) => ({
   signOut: async () => {
     try {
       set({ ldg: true });
-      // Clear auth storage
-      localStorage.removeItem('sb.session');
+      localStorage.removeItem('supabase.session');
+      localStorage.removeItem('supabase.session.expires');
       sessionStorage.clear();
-      
-      // Log auth event before signing out
-      try {
-        await sb.rpc('log_auth_event', {
-          p_event_type: 'sign_out',
-          p_metadata: { timestamp: new Date().toISOString() }
-        });
-      } catch (e) {
-        console.warn('Failed to log sign out event:', e);
-      }
       
       await sb.auth.signOut();
       
-      // Reset auth state
       set({ usr: null, ses: null, gdp: false });
     } catch (e) {
       console.error('Sign out error:', e);
-      // Force reset auth state even if sign out fails
       set({ usr: null, ses: null, gdp: false });
     } finally {
       set({ ldg: false });
