@@ -18,6 +18,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       initAuth();
+      
+      // Set up session refresh interval
+      const refreshInterval = setInterval(() => {
+        const session = sb.auth.session();
+        if (session) {
+          sb.auth.refreshSession();
+        }
+      }, 4 * 60 * 1000); // Refresh every 4 minutes
+      
+      return () => clearInterval(refreshInterval);
     } catch (err) {
       console.error("Auth initialization error:", err);
     }
@@ -40,3 +50,5 @@ export function useAuthContext() {
   
   return context;
 }
+
+export { AuthProvider }
