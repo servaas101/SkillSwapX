@@ -6,6 +6,7 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS = "--include=dev"
+  NODE_ENV = "production"
 
 [dev]
   command = "npm run dev"
@@ -13,9 +14,17 @@
 
 [context.production]
   environment = { NODE_ENV = "production" }
+  [context.production.environment]
+    # Supabase environment variables are managed in Netlify dashboard
+    VITE_SUPABASE_URL = "https://your-project.supabase.co"
+    VITE_SUPABASE_ANON_KEY = "your-anon-key"
 
 [context.deploy-preview]
   environment = { NODE_ENV = "preview" }
+  [context.deploy-preview.environment]
+    # Preview environment uses same Supabase project but with restricted access
+    VITE_SUPABASE_URL = "https://your-project.supabase.co"
+    VITE_SUPABASE_ANON_KEY = "your-preview-anon-key"
 
 [[edge_functions]]
   path = "/api/privacy/*"
