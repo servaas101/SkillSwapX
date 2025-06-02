@@ -116,5 +116,3 @@ export class Db {
 
 const db = new Db();
 export const sb = db.c;
-
-export { sb }
