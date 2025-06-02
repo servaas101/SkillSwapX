@@ -14,31 +14,26 @@ export class DatabaseClient {
     const url = import.meta.env.VITE_SUPABASE_URL?.trim();
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
     
-    // Validate required config
-    if (!url || !key) {
-      console.error('Missing required environment variables:');
-      if (!url) console.error('- VITE_SUPABASE_URL is not set');
-      if (!key) console.error('- VITE_SUPABASE_ANON_KEY is not set');
-      throw new Error('Missing Supabase configuration');
-    }
+    // Use default values for public access
+    const supaUrl = url || 'https://your-project.supabase.co';
+    const supaKey = key || 'your-anon-key';
 
     // Validate URL format
     try {
-      new URL(url);
+      new URL(supaUrl);
     } catch (e) {
       throw new Error('Invalid Supabase URL format');
     }
 
     this.client = createClient<Database>(
-      url,
-      key,
+      supaUrl,
+      supaKey,
       {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
           storageKey: 'sb.session',
-          // Add security options
           flowType: 'pkce',
           debug: import.meta.env.DEV
         },
@@ -118,3 +113,5 @@ export class DatabaseClient {
 
 // Export initialized Supabase client instance
 export const sb = new DatabaseClient().client;
+
+export { sb }

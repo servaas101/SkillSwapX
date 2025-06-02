@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
@@ -38,13 +38,11 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route element={<Layout />}>
           <Route index element={<LandingPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
-          
-          {/* Public Routes */}
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/legal" element={<Legal />} />
@@ -57,18 +55,15 @@ function App() {
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/platform" element={<Platform />} />
           
-          {/* Auth Routes */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           
-          {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           
-          {/* Feature Routes */}
           <Route path="/privacy-settings" element={<PrivacySettings />} />
           <Route path="/opportunities" element={<ProtectedRoute><Opportunities /></ProtectedRoute>} />
           <Route path="/skills-analytics" element={<ProtectedRoute><SkillsAnalytics /></ProtectedRoute>} />
@@ -76,8 +71,7 @@ function App() {
           <Route path="/mentorship" element={<ProtectedRoute><MentorshipManagement /></ProtectedRoute>} />
           <Route path="/mentor-profile" element={<ProtectedRoute><MentorProfile /></ProtectedRoute>} />
           
-          {/* 404 Route */}
-          <Route path="*" element={<Navigate to="/\" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </AuthProvider>
