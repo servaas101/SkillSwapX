@@ -107,5 +107,5 @@ export class DatabaseClient {
   }
 }
 
-// Export single instance of Supabase client
-export const supabase = new DatabaseClient().supabase;
+// Export single instance of Supabase client with the name 'sb'
+export const sb = new DatabaseClient().supabase;
