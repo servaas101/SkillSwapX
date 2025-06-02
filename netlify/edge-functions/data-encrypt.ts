@@ -1,33 +1,33 @@
 import type { Context } from '@netlify/edge-functions';
 
-// Encryption key from environment
-const k = process.env.ENCRYPTION_KEY;
-
-// Encrypt sensitive data
-const e = async (d: any): Promise<string> => {
-  const t = new TextEncoder();
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  
-  const key = await crypto.subtle.importKey(
-    'raw',
-    t.encode(k),
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt']
-  );
-  
-  const c = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    t.encode(JSON.stringify(d))
-  );
-  
-  return btoa(String.fromCharCode(...new Uint8Array(c))) + 
-         '.' + 
-         btoa(String.fromCharCode(...iv));
-};
-
 export default async (req: Request, ctx: Context) => {
+  // Encryption key from environment context
+  const k = ctx.env.ENCRYPTION_KEY;
+
+  // Encrypt sensitive data
+  const e = async (d: any): Promise<string> => {
+    const t = new TextEncoder();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    
+    const key = await crypto.subtle.importKey(
+      'raw',
+      t.encode(k),
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt']
+    );
+    
+    const c = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      t.encode(JSON.stringify(d))
+    );
+    
+    return btoa(String.fromCharCode(...new Uint8Array(c))) + 
+           '.' + 
+           btoa(String.fromCharCode(...iv));
+  };
+
   try {
     const d = await req.json();
     
