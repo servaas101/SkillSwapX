@@ -111,13 +111,10 @@ export class Db {
         }
       }
     });
-
-    // Handle realtime errors
-    this.c.realtime.on('error', (e) => {
-      console.error('Realtime connection error:', e);
-    });
   }
 }
 
 const db = new Db();
 export const sb = db.c;
+
+export { sb }
