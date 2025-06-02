@@ -32,7 +32,7 @@ export function ProtectedRoute({
 
   // Redirect to privacy settings if GDPR consent required
   if (requireGdpr && !gdp) {
-    return <Navigate to="/privacy-settings\" state={{ from: location }} replace />;
+    return <Navigate to="/privacy-settings" state={{ from: location }} replace />;
   }
 
   // Render protected content

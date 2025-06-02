@@ -1,47 +1,16 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../auth/AuthProvider';
-import { Menu, X, LogOut, User, Settings, BrainCircuit, Book, Info, CreditCard, HelpCircle, MessageSquare, Scale, Building2, FileText, Briefcase, Home } from 'lucide-react';
-
-interface NavItem {
-  name: string;
-  href: string;
-  auth?: boolean;
-  icon?: React.ReactNode;
-}
+import { Menu, X, LogOut, User, Settings, BrainCircuit } from 'lucide-react';
 
 export function NavBar() {
   const [open, setOpen] = useState(false);
   const { usr, signOut } = useAuthContext();
   const loc = useLocation();
   
-  const nav: NavItem[] = [
-    // Public Routes
-    { name: 'Platform', href: '/platform', icon: <Book className="h-4 w-4" /> },
-    { name: 'About', href: '/about', icon: <Info className="h-4 w-4" /> },
-    { name: 'Features', href: '/features', icon: <Settings className="h-4 w-4" /> },
-    { name: 'Pricing', href: '/pricing', icon: <CreditCard className="h-4 w-4" /> },
-    { name: 'FAQ', href: '/faq', icon: <HelpCircle className="h-4 w-4" /> },
-    { name: 'Contact', href: '/contact', icon: <MessageSquare className="h-4 w-4" /> },
-    
-    // Legal Routes
-    { name: 'Legal', href: '/legal', icon: <Scale className="h-4 w-4" /> },
-    { name: 'Privacy', href: '/privacy', icon: <Scale className="h-4 w-4" /> },
-    { name: 'Terms', href: '/terms', icon: <FileText className="h-4 w-4" /> },
-    
-    // Company Routes
-    { name: 'Company', href: '/company', icon: <Building2 className="h-4 w-4" /> },
-    { name: 'Careers', href: '/careers', icon: <Briefcase className="h-4 w-4" /> },
-    { name: 'Blog', href: '/blog', icon: <FileText className="h-4 w-4" /> },
-    
-    // Auth Routes
+  const nav = [
     { name: 'Sign In', href: '/signin', auth: false },
-    { name: 'Sign Up', href: '/signup', auth: false },
-    
-    // Protected Routes
-    { name: 'Dashboard', href: '/dashboard', auth: true, icon: <Home className="h-4 w-4" /> },
-    { name: 'Profile', href: '/profile', auth: true, icon: <User className="h-4 w-4" /> },
-    { name: 'Settings', href: '/settings', auth: true, icon: <Settings className="h-4 w-4" /> }
+    { name: 'Sign Up', href: '/signup', auth: false }
   ];
 
   const handleSignOut = async () => {
@@ -52,8 +21,7 @@ export function NavBar() {
   // Filter navigation items based on auth status
   const filteredNav = nav.filter(item => {
     if (usr && item.auth) return true;
-    if (!usr && item.auth === false) return true;
-    if (item.auth === undefined) return true;
+    if (!usr && !item.auth) return true;
     return false;
   });
 
@@ -72,20 +40,17 @@ export function NavBar() {
             {/* Desktop Navigation */}
             <nav className="ml-6 hidden space-x-8 sm:flex">
               {filteredNav.map((item) => (
-                <div key={item.name} className="relative">
-                  <Link
-                    to={item.href}
-                    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${
-                      loc.pathname === item.href
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    }`}
-                    aria-current={loc.pathname === item.href ? 'page' : undefined}
-                  >
-                    {item.icon && <span className="mr-2">{item.icon}</span>}
-                    {item.name}
-                  </Link>
-                </div>
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${
+                    loc.pathname === item.href
+                      ? 'border-blue-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  }`}
+                >
+                  {item.name}
+                </Link>
               ))}
             </nav>
           </div>
@@ -188,7 +153,6 @@ export function NavBar() {
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700'
                 }`}
-                aria-current={loc.pathname === item.href ? 'page' : undefined}
                 onClick={() => setOpen(false)}
               >
                 {item.name}
