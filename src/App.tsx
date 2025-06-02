@@ -11,10 +11,6 @@ import { SignUp } from './pages/SignUp';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
-import { About } from './pages/About';
-import { Features } from './pages/Features';
-import { Pricing } from './pages/Pricing';
-import { Support } from './pages/Support';
 import { FAQ } from './pages/FAQ';
 import { Contact } from './pages/Contact';
 import { Legal } from './pages/Legal';
@@ -48,10 +44,6 @@ function App() {
             <Route path="/pricing" element={<Pricing />} />
             
             {/* Public Routes */}
-            <Route path="/about" element={<About />} />
-            <Route path="/features" element={<Features />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/support" element={<Support />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/legal" element={<Legal />} />
@@ -73,15 +65,16 @@ function App() {
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
             
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
+            {/* Feature Routes */}
             <Route path="/privacy-settings" element={<PrivacySettings />} />
             <Route path="/opportunities" element={<Opportunities />} />
             <Route path="/skills-analytics" element={<SkillsAnalytics />} />
             <Route path="/project-collaboration" element={<ProjectCollaboration />} />
             <Route path="/mentorship" element={<MentorshipManagement />} />
             <Route path="/mentor-profile" element={<MentorProfile />} />
-            <Route path="*" element={<Navigate to="/\" replace />} />
+            
+            {/* 404 Route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </AuthProvider>
