@@ -14,7 +14,7 @@ export function ProtectedRoute({ children, requireGdpr = true }: Props) {
   }
 
   if (requireGdpr && !gdp) {
-    return <Navigate to="/privacy-settings" replace />;
+    return <Navigate to="/privacy-settings\" replace />;
   }
 
   return <>{children}</>;
