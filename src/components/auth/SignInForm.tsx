@@ -8,28 +8,38 @@ export function SignInForm() {
   const [pwd, setPwd] = useState('');
   const [err, setErr] = useState('');
   const [rem, setRem] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   
   const { signIn, ldg } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const returnTo = location.state?.from?.pathname || '/dashboard';
+  const returnTo = location.state?.returnTo || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr('');
+    setRedirecting(false);
     
     if (!em || !pwd) {
       setErr('Please fill in all fields');
       return;
     }
     
-    const { err: signInErr } = await signIn(em, pwd, rem);
+    const { err: signInErr, usr: signedInUser } = await signIn(em, pwd, rem);
     
     if (signInErr) { 
       setErr(signInErr);
     } else {
-      // Successful login - redirect to intended destination
-      navigate(returnTo, { replace: true });
+      // Successful login
+      setRedirecting(true);
+      
+      // Add small delay to ensure auth state is updated
+      setTimeout(() => {
+        navigate(returnTo, { 
+          replace: true,
+          state: { authenticated: true }
+        });
+      }, 100);
     }
   };
 
@@ -109,13 +119,26 @@ export function SignInForm() {
             <div className="text-sm text-red-700">{err}</div>
           </div>
         )}
+
+        {redirecting && (
+          <div className="rounded-md bg-blue-50 p-4">
+            <div className="flex">
+              <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-blue-600"></div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-blue-800">
+                  Signing in... You will be redirected shortly.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <button
           type="submit"
-          disabled={ldg}
+          disabled={ldg || redirecting}
           className="group relative flex w-full justify-center rounded-md bg-blue-600 py-3 px-4 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
         >
-          {ldg ? (
+          {(ldg || redirecting) ? (
             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
               <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-white"></div>
             </span>
@@ -124,7 +147,7 @@ export function SignInForm() {
               <ArrowRight className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
             </span>
           )}
-          {ldg ? 'Signing in...' : 'Sign in'}
+          {ldg ? 'Signing in...' : redirecting ? 'Redirecting...' : 'Sign in'}
         </button>
         
         <div className="mt-4 text-center text-sm text-gray-600">

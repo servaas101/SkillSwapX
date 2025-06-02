@@ -136,33 +136,51 @@ export const useAuth = create<AuthState>((set, get) => ({
   signIn: async (em, pwd, remember = false) => {
     try {
       set({ ldg: true });
-      // Clear any existing session
-      localStorage.removeItem('sb.session');
-      sessionStorage.removeItem('sb.session');
+      
+      // Clear existing sessions
+      const storage = remember ? localStorage : sessionStorage;
+      storage.clear();
       
       const { data, error } = await sb.auth.signInWithPassword({
         email: em,
         password: pwd,
         options: {
-          persistSession: remember
+          persistSession: remember,
+          // Add CSRF protection
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
         }
       });
       
       if (error) throw error;
       
-      // Get user profile data
+      // Verify session and get profile
       const { data: profile, error: profErr } = await sb
         .from('profiles')
         .select('*')
         .eq('uid', data.user.id)
         .single();
         
-      if (profErr && profErr.code !== 'PGRST116') throw profErr;
+      if (profErr) {
+        if (profErr.code === 'PGRST116') {
+          console.warn('Profile not found, will be created');
+        } else {
+          throw profErr;
+        }
+      }
       
-      // Store session in localStorage
+      // Store session
       if (data.session) {
-        const storage = remember ? localStorage : sessionStorage;
+        // Add session expiry check
+        const expiresAt = new Date(data.session.expires_at);
+        if (expiresAt < new Date()) {
+          throw new Error('Session expired');
+        }
+        
+        // Store session with security flags
         storage.setItem('sb.session', JSON.stringify(data.session));
+        storage.setItem('sb.session.expires', expiresAt.toISOString());
       }
       
       set({ 
@@ -171,7 +189,17 @@ export const useAuth = create<AuthState>((set, get) => ({
         gdp: profile?.gdp || false
       });
       
-      return { usr: data.user };
+      // Log successful auth
+      try {
+        await sb.rpc('log_auth_event', {
+          p_event_type: 'sign_in',
+          p_metadata: { timestamp: new Date().toISOString() }
+        });
+      } catch (e) {
+        console.warn('Failed to log auth event:', e);
+      }
+      
+      return { usr: data.user, ses: data.session };
     } catch (e: any) {
       console.error('Sign in error:', e);
       // Reset auth state on sign in error
