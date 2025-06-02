@@ -19,6 +19,7 @@ import { Terms } from './pages/Terms';
 import { Company } from './pages/Company';
 import { Careers } from './pages/Careers';
 import { Blog } from './pages/Blog';
+import { BlogPost } from './pages/BlogPost';
 import { Platform } from './pages/Platform';
 import { Settings } from './pages/Settings';
 import { Account } from './pages/Account';
@@ -51,7 +52,9 @@ function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/company" element={<Company />} />
             <Route path="/careers" element={<Careers />} />
+            <Route path="/careers/:slug" element={<CareerPost />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/platform" element={<Platform />} />
             
             {/* Auth Routes */}
