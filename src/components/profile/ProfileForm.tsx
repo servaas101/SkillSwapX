@@ -63,16 +63,31 @@ export function ProfileForm() {
     setMsg('');
     setErr('');
     
+    if (!usr) {
+      setErr('You must be logged in');
+      return;
+    }
+
+    // Validate input
+    if (ph && !/^\+?[\d\s-()]+$/.test(ph)) {
+      setErr('Invalid phone number format');
+      return;
+    }
+    
     const { err: updateErr } = await updatePrf({
       fn,
       ln,
-      em,
+      em: em === usr.email ? undefined : em, // Only update if changed
       ph,
       loc,
       bio
     });
     
     if (updateErr) {
+      if (updateErr.includes('duplicate key')) {
+        setErr('Email already in use');
+        return;
+      }
       setErr(updateErr);
     } else {
       setMsg('Profile updated successfully');
@@ -156,6 +171,7 @@ export function ProfileForm() {
                   type="email"
                   value={em}
                   onChange={(e) => setEm(e.target.value)}
+                  autoComplete="email"
                   className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                   disabled={!!usr?.email} // Disable if set via authentication
                 />
@@ -179,6 +195,8 @@ export function ProfileForm() {
                   type="tel"
                   id="phone"
                   value={ph}
+                  autoComplete="tel"
+                  pattern="^\+?[\d\s-()]+$"
                   onChange={(e) => setPh(e.target.value)}
                   className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                 />

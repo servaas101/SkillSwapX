@@ -4,10 +4,10 @@ import { sb } from './supabase';
 export class Skl {
   constructor() {}
 
-  async get(uid: string) {
+  async get(uid: string): Promise<any[]> {
     try {
       const { data, error } = await sb
-        .from('skill_inventory')
+        .from('skills')
         .select(`
           *,
           endorsements:skill_endorsements(
@@ -18,7 +18,7 @@ export class Skl {
             endorser:profiles(id, fn, ln, img)
           )
         `)
-        .eq('emp_id', uid)
+        .eq('uid', uid)
         .order('category', { ascending: true });
         
       if (error) {
@@ -33,24 +33,29 @@ export class Skl {
     }
   }
 
-  async uSk(
+  async updateSkill(
     name: string,
-    category: string,
-    subcategory: string | null,
     level: number,
-    years: number
+    years: number = 0,
+    category: string | null = null
   ) {
     try {
-      return sb.rpc('upsert_skill', {
-        p_skill_name: name,
-        p_category: category,
-        p_subcategory: subcategory,
-        p_level: level,
-        p_years: years
-      });
+      const { data, error } = await sb.rpc('upsert_skill', {
+        p_skill_name: name.trim(),
+        p_level: Math.min(Math.max(level, 1), 5),
+        p_years: Math.max(years, 0),
+        p_category: category?.trim() || null
+      }); 
+
+      if (error?.code === '23505') {
+        // Ignore duplicate key violations
+        return { data: null, error: null };
+      }
+
+      return { data, error };
     } catch (e) {
       console.error('Upsert skill error:', e);
-      throw e;
+      return { data: null, error: e };
     }
   }
 
