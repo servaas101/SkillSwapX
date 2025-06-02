@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
-const CONN_CFG = {
+const CONFIG = {
   maxRetries: 5,
   retryDelay: 2000,
   timeout: 10000
@@ -15,7 +15,10 @@ export class DatabaseClient {
     const supaKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
     if (!supaUrl || !supaKey) {
-      throw new Error('Missing Supabase credentials');
+      console.error('Missing required environment variables:');
+      if (!supaUrl) console.error('- VITE_SUPABASE_URL is not set');
+      if (!supaKey) console.error('- VITE_SUPABASE_ANON_KEY is not set');
+      throw new Error('Missing Supabase configuration');
     }
 
     // Validate URL format
@@ -39,6 +42,7 @@ export class DatabaseClient {
         },
         global: {
           headers: {
+            'apikey': supaKey,
             'x-client-info': 'skillswapx',
             'Accept': 'application/json',
             'X-Client-Version': '1.0.0'
@@ -62,9 +66,9 @@ export class DatabaseClient {
     let retries = 0;
     let lastErr = null;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), CONN_CFG.timeout);
+    const timeoutId = setTimeout(() => controller.abort(), CONFIG.timeout);
 
-    while (retries < CONN_CFG.maxRetries) {
+    while (retries < CONFIG.maxRetries) {
       try {
         const { error } = await this.supabase
           .from('auth_events')
@@ -79,15 +83,15 @@ export class DatabaseClient {
         retries++;
         console.warn(`Supabase connection attempt ${retries} failed:`, err);
         
-        if (retries === CONN_CFG.maxRetries) break;
+        if (retries === CONFIG.maxRetries) break;
         
-        await new Promise(resolve => setTimeout(resolve, CONN_CFG.retryDelay));
+        await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay));
       }
     }
     clearTimeout(timeoutId);
     
     throw new Error(
-      `Failed to connect to Supabase after ${CONN_CFG.maxRetries} attempts. ` +
+      `Failed to connect to Supabase after ${CONFIG.maxRetries} attempts. ` +
       `Last error: ${lastErr?.message || 'Unknown error'}`
     );
   }
