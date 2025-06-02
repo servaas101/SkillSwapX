@@ -43,8 +43,8 @@ export class DatabaseClient {
         global: {
           headers: {
             'apikey': supaKey,
+            'Accept': 'application/vnd.pgrst.object+json',
             'x-client-info': 'skillswapx',
-            'Accept': 'application/json',
             'X-Client-Version': '1.0.0'
           }
         },
