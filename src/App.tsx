@@ -77,7 +77,7 @@ function App() {
           <Route path="/mentor-profile" element={<ProtectedRoute><MentorProfile /></ProtectedRoute>} />
           
           {/* 404 Route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/\" replace />} />
         </Route>
       </Routes>
     </AuthProvider>
