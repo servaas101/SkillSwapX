@@ -115,3 +115,6 @@ export class DatabaseClient {
     });
   }
 }
+
+// Export initialized Supabase client instance
+export const sb = new DatabaseClient().client;
