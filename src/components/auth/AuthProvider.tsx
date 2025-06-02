@@ -50,5 +50,3 @@ export function useAuthContext() {
   
   return context;
 }
-
-export { AuthProvider }
