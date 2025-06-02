@@ -27,8 +27,7 @@ export class Db {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
-          storageKey: 'sb.session',
-          storage: window.localStorage
+          storageKey: 'sb.session'
         },
         global: {
           headers: {

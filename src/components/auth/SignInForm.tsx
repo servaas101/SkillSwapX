@@ -7,11 +7,12 @@ export function SignInForm() {
   const [em, setEm] = useState('');
   const [pwd, setPwd] = useState('');
   const [err, setErr] = useState('');
+  const [rem, setRem] = useState(false);
   
   const { signIn, ldg } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const returnTo = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,13 +23,13 @@ export function SignInForm() {
       return;
     }
     
-    const { err: signInErr } = await signIn(em, pwd);
+    const { err: signInErr } = await signIn(em, pwd, rem);
     
     if (signInErr) { 
       setErr(signInErr);
     } else {
       // Successful login - redirect to intended destination
-      navigate(from, { replace: true });
+      navigate(returnTo, { replace: true });
     }
   };
 
@@ -88,6 +89,8 @@ export function SignInForm() {
               id="remember-me"
               name="remember-me"
               type="checkbox"
+              checked={rem}
+              onChange={(e) => setRem(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">

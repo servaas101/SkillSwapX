@@ -9,8 +9,8 @@ type AuthState = {
   ldg: boolean;
   init: boolean;
   gdp: boolean;
-  signUp: (em: string, pwd: string) => Promise<{ err?: string }>;
-  signIn: (em: string, pwd: string) => Promise<{ err?: string }>;
+  signUp: (em: string, pwd: string) => Promise<{ err?: string, usr?: User }>;
+  signIn: (em: string, pwd: string, remember?: boolean) => Promise<{ err?: string, usr?: User }>;
   signOut: () => Promise<void>;
   resetPwd: (em: string) => Promise<{ err?: string }>;
   loadUsr: () => Promise<void>;
@@ -133,15 +133,19 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   // Sign in existing user
-  signIn: async (em, pwd) => {
+  signIn: async (em, pwd, remember = false) => {
     try {
       set({ ldg: true });
       // Clear any existing session
       localStorage.removeItem('sb.session');
+      sessionStorage.removeItem('sb.session');
       
       const { data, error } = await sb.auth.signInWithPassword({
         email: em,
-        password: pwd
+        password: pwd,
+        options: {
+          persistSession: remember
+        }
       });
       
       if (error) throw error;
@@ -157,7 +161,8 @@ export const useAuth = create<AuthState>((set, get) => ({
       
       // Store session in localStorage
       if (data.session) {
-        localStorage.setItem('sb.session', JSON.stringify(data.session));
+        const storage = remember ? localStorage : sessionStorage;
+        storage.setItem('sb.session', JSON.stringify(data.session));
       }
       
       set({ 
@@ -166,7 +171,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         gdp: profile?.gdp || false
       });
       
-      return { err: undefined };
+      return { usr: data.user };
     } catch (e: any) {
       console.error('Sign in error:', e);
       // Reset auth state on sign in error

@@ -1,23 +1,21 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from './AuthProvider';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireGdpr?: boolean;
   redirectPath?: string;
-  redirectState?: { from?: Location };
 }
 
 export function ProtectedRoute({ 
   children, 
   requireGdpr = true,
-  redirectPath = '/signin',
-  redirectState
+  redirectPath = '/signin'
 }: ProtectedRouteProps) {
   const { usr, gdp, ldg, init } = useAuthContext();
   const location = useLocation();
-  const state = redirectState || { from: location };
+  const state = { from: location };
 
   // Show loading spinner while auth state is initializing
   if (!init || ldg) {
@@ -47,7 +45,7 @@ export function ProtectedRoute({
     return (
       <Navigate 
         to="/privacy-settings" 
-        state={{ from: location, requireConsent: true, returnTo: state.from?.pathname }} 
+        state={{ from: location, requireConsent: true }} 
         replace 
       />
     );
