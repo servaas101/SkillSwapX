@@ -243,9 +243,6 @@ export const useAuth = create<AuthState>((set, get) => ({
       const usr = get().usr;
       if (!usr) throw new Error('Not authenticated');
       
-      const usr = get().usr;
-      if (!usr) throw new Error('Not authenticated');
-      
       const { data, error } = await sb.rpc('update_gdpr_consent', {
         p_consent: val,
         p_ip: ''
