@@ -6,12 +6,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requireGdpr?: boolean;
   redirectPath?: string;
+  redirectState?: Record<string, unknown>;
 }
 
 export function ProtectedRoute({ 
   children, 
   requireGdpr = true,
-  redirectPath = '/signin'
+  redirectPath = '/signin',
+  redirectState = {}
 }: ProtectedRouteProps) {
   const { usr, gdp, ldg, init } = useAuthContext();
   const location = useLocation();
@@ -27,12 +29,24 @@ export function ProtectedRoute({
 
   // Redirect to login if not authenticated
   if (!usr) {
-    return <Navigate to={redirectPath} state={{ from: location }} replace />;
+    return (
+      <Navigate 
+        to={redirectPath} 
+        state={{ from: location, ...redirectState }} 
+        replace 
+      />
+    );
   }
 
   // Redirect to privacy settings if GDPR consent required
   if (requireGdpr && !gdp) {
-    return <Navigate to="/privacy-settings\" state={{ from: location }} replace />;
+    return (
+      <Navigate 
+        to="/privacy-settings" 
+        state={{ from: location, requireConsent: true }} 
+        replace 
+      />
+    );
   }
 
   // Render protected content

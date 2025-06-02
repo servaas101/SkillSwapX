@@ -9,8 +9,8 @@ export class Db {
   public c: SupabaseClient;
 
   constructor() {
-    const url = import.meta.env.VITE_SUPABASE_URL;
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const url = import.meta.env.VITE_SUPABASE_URL?.trim();
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
     
     if (!url || !key) throw new Error('Missing Supabase environment variables');
 
@@ -21,7 +21,7 @@ export class Db {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true,
+          detectSessionInUrl: false,
           storageKey: 'sb.session',
           storage: window.localStorage
         },
@@ -32,9 +32,7 @@ export class Db {
           }
         },
         realtime: {
-          params: {
-            eventsPerSecond: 2
-          }
+          params: { eventsPerSecond: 2 }
         }
       }
     );
@@ -45,20 +43,16 @@ export class Db {
   private async initConnection() {
     let retries = 0;
     let lastError = null;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
     while (retries < MAX_RETRIES) {
       try {
-        // Try a simple health check query with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
-
         const { error } = await this.c
           .from('auth_events')
           .select('id')
           .limit(1)
           .abortSignal(controller.signal);
-
-        clearTimeout(timeoutId);
 
         if (!error) return; // Connection successful
         throw error;
@@ -72,6 +66,7 @@ export class Db {
         await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
       }
     }
+    clearTimeout(timeoutId);
     
     throw new Error(
       `Failed to connect to Supabase after ${MAX_RETRIES} attempts. ` +

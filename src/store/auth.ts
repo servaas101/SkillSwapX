@@ -136,14 +136,13 @@ export const useAuth = create<AuthState>((set, get) => ({
   signIn: async (em, pwd) => {
     try {
       set({ ldg: true });
-      // Clear any existing session
-      await sb.auth.signOut();
       
       const { data, error } = await sb.auth.signInWithPassword({
         email: em,
         password: pwd,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
       
@@ -152,11 +151,14 @@ export const useAuth = create<AuthState>((set, get) => ({
       // Get user profile data
       const { data: profile, error: profErr } = await sb
         .from('profiles')
-        .select('*')
+        .select('gdp')
         .eq('uid', data.user.id)
         .single();
         
       if (profErr && profErr.code !== 'PGRST116') throw profErr;
+      
+      // Store session in localStorage
+      localStorage.setItem('sb.session', JSON.stringify(data.session));
       
       set({ 
         usr: data.user, 
@@ -164,7 +166,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         gdp: profile?.gdp || false
       });
       
-      return {};
+      return { err: undefined };
     } catch (e: any) {
       console.error('Sign in error:', e);
       // Reset auth state on sign in error
@@ -179,11 +181,9 @@ export const useAuth = create<AuthState>((set, get) => ({
   signOut: async () => {
     try {
       set({ ldg: true });
-      // Clear all auth-related storage
+      // Clear auth storage
       localStorage.removeItem('sb.session');
       sessionStorage.clear();
-      document.cookie = 'sb-access-token=; Max-Age=0; path=/;';
-      document.cookie = 'sb-refresh-token=; Max-Age=0; path=/;';
       
       // Log auth event before signing out
       try {
@@ -194,11 +194,6 @@ export const useAuth = create<AuthState>((set, get) => ({
       } catch (e) {
         console.warn('Failed to log sign out event:', e);
       }
-      
-      // Sign out from Supabase
-      // Clear local storage and cookies
-      localStorage.removeItem('sb.session');
-      document.cookie = 'sb.auth.token=; Max-Age=0; path=/;';
       
       await sb.auth.signOut();
       
