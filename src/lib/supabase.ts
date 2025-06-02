@@ -12,7 +12,12 @@ export class Db {
     const url = import.meta.env.VITE_SUPABASE_URL?.trim();
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
     
-    if (!url || !key) throw new Error('Missing Supabase environment variables');
+    if (!url || !key) {
+      console.error('Missing required environment variables:');
+      if (!url) console.error('- VITE_SUPABASE_URL is not set');
+      if (!key) console.error('- VITE_SUPABASE_ANON_KEY is not set');
+      throw new Error('Missing Supabase configuration');
+    }
 
     this.c = createClient<Database>(
       url,
@@ -21,7 +26,7 @@ export class Db {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: false,
+          detectSessionInUrl: true,
           storageKey: 'sb.session',
           storage: window.localStorage
         },
