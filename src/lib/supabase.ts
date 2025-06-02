@@ -1,22 +1,22 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
-const CONNECTION_CONFIG = {
+const CONN_CFG = {
   maxRetries: 5,
   retryDelay: 2000,
   timeout: 10000
 } as const;
 
 export class DatabaseClient {
-  public client: SupabaseClient;
+  public supabase: SupabaseClient;
 
   constructor() {
-    const url = import.meta.env.VITE_SUPABASE_URL?.trim();
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+    const supaUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supaKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    // Use default values for public access
-    const supaUrl = url || 'https://your-project.supabase.co';
-    const supaKey = key || 'your-anon-key';
+    if (!supaUrl || !supaKey) {
+      throw new Error('Missing Supabase credentials');
+    }
 
     // Validate URL format
     try {
@@ -25,7 +25,7 @@ export class DatabaseClient {
       throw new Error('Invalid Supabase URL format');
     }
 
-    this.client = createClient<Database>(
+    this.supabase = createClient<Database>(
       supaUrl,
       supaKey,
       {
@@ -33,7 +33,7 @@ export class DatabaseClient {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
-          storageKey: 'sb.session',
+          storageKey: 'supabase.session',
           flowType: 'pkce',
           debug: import.meta.env.DEV
         },
@@ -47,71 +47,65 @@ export class DatabaseClient {
         realtime: {
           params: { 
             eventsPerSecond: 2,
-            // Add heartbeat to detect connection issues
             heartbeat: true,
-            heartbeatIntervalMs: 1000 * 30 // 30 seconds
+            heartbeatIntervalMs: 1000 * 30
           }
         }
       }
     );
     
-    this.initConnection();
-    this.setupErrorHandling();
+    this.initConn();
+    this.setupError();
   }
 
-  private async initConnection() {
+  private async initConn() {
     let retries = 0;
-    let lastError = null;
+    let lastErr = null;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), CONNECTION_CONFIG.timeout);
+    const timeoutId = setTimeout(() => controller.abort(), CONN_CFG.timeout);
 
-    while (retries < CONNECTION_CONFIG.maxRetries) {
+    while (retries < CONN_CFG.maxRetries) {
       try {
-        const { error } = await this.client
+        const { error } = await this.supabase
           .from('auth_events')
           .select('id')
           .limit(1)
           .abortSignal(controller.signal);
 
-        if (!error) return; // Connection successful
+        if (!error) return;
         throw error;
-      } catch (e) {
-        lastError = e;
+      } catch (err) {
+        lastErr = err;
         retries++;
-        console.warn(`Supabase connection attempt ${retries} failed:`, e);
+        console.warn(`Supabase connection attempt ${retries} failed:`, err);
         
-        if (retries === CONNECTION_CONFIG.maxRetries) break;
+        if (retries === CONN_CFG.maxRetries) break;
         
-        await new Promise(resolve => setTimeout(resolve, CONNECTION_CONFIG.retryDelay));
+        await new Promise(resolve => setTimeout(resolve, CONN_CFG.retryDelay));
       }
     }
     clearTimeout(timeoutId);
     
     throw new Error(
-      `Failed to connect to Supabase after ${CONNECTION_CONFIG.maxRetries} attempts. ` +
-      `Last error: ${lastError?.message || 'Unknown error'}`
+      `Failed to connect to Supabase after ${CONN_CFG.maxRetries} attempts. ` +
+      `Last error: ${lastErr?.message || 'Unknown error'}`
     );
   }
 
-  private setupErrorHandling() {
-    // Handle auth errors
-    this.client.auth.onAuthStateChange((event, session) => {
+  private setupError() {
+    this.supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
-        // Clear all storage on sign out
         localStorage.clear();
         sessionStorage.clear();
       } else if (event === 'TOKEN_REFRESHED') {
-        // Update session expiry
-        const storage = localStorage.getItem('sb.session') ? localStorage : sessionStorage;
+        const storage = localStorage.getItem('supabase.session') ? localStorage : sessionStorage;
         if (session) {
-          storage.setItem('sb.session.expires', session.expires_at);
+          storage.setItem('supabase.session.expires', session.expires_at);
         }
       }
     });
   }
 }
 
-// Export initialized Supabase client instance
-export const sb = new DatabaseClient().client;
-
-export { sb }
+// Export single instance of Supabase client
+export const supabase = new DatabaseClient().supabase;
