@@ -293,7 +293,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       try {
         // Call data deletion RPC
         const { error } = await sb.rpc('delete_user_data', {
-          p_uid: usr.id
+          p_id: usr.id
         });
         
         if (error) {
