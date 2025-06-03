@@ -307,7 +307,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         
         // Log deletion request
         const { error: logError } = await sb.rpc('log_consent', {
-          p_uid: usr.id,
+          p_id: usr.id,
           p_typ: 'data_deletion',
           p_dat: { deleted: new Date().toISOString() },
           p_ip: ''
