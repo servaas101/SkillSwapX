@@ -71,7 +71,7 @@ export class DatabaseClient {
     while (retries < CONFIG.maxRetries) {
       try {
         const { error } = await this.supabase
-          .from('auth_events')
+          .from('profiles')
           .select('id')
           .limit(1)
           .abortSignal(controller.signal);
