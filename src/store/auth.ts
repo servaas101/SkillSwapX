@@ -9,7 +9,7 @@ type AuthState = {
   ldg: boolean;
   init: boolean;
   gdp: boolean;
-  signUp: (em: string, pwd: string) => Promise<{ err?: string, usr?: User }>;
+  signUp: (em: string, pwd: string) => Promise<{ err?: string }>;
   signIn: (em: string, pwd: string, remember?: boolean) => Promise<{ err?: string, usr?: User }>;
   signOut: () => Promise<void>;
   resetPwd: (em: string) => Promise<{ err?: string }>;
@@ -32,19 +32,6 @@ export const useAuth = create<AuthState>((set, get) => ({
   loadUsr: async () => {
     try {
       set({ ldg: true });
-      // Check for existing session in storage
-      const storedSession = localStorage.getItem('sb.session');
-      if (storedSession) {
-        try {
-          const session = JSON.parse(storedSession);
-          if (session?.access_token) {
-            sb.auth.setSession(session);
-          }
-        } catch (e) {
-          console.warn('Invalid stored session:', e);
-          localStorage.removeItem('sb.session');
-        }
-      }
       
       // Get current session
       const { data: { session }, error: sessionError } = await sb.auth.getSession();
@@ -67,7 +54,7 @@ export const useAuth = create<AuthState>((set, get) => ({
             console.error("Profile fetch error:", error);
             // If profile fetch fails due to JWT expiration, reset auth state
             if (error.message.includes('JWT expired')) {
-              await sb.auth.signOut(); // Sign out to clear invalid session
+              await sb.auth.signOut();
               set({ usr: null, ses: null, gdp: false });
               throw error;
             }
@@ -80,7 +67,6 @@ export const useAuth = create<AuthState>((set, get) => ({
             gdp: data?.gdp || false
           });
         } catch (profileError) {
-          // Reset auth state on profile fetch error
           console.error('Profile fetch error:', profileError);
           set({ usr: null, ses: null, gdp: false });
           throw profileError;
@@ -90,7 +76,6 @@ export const useAuth = create<AuthState>((set, get) => ({
       }
     } catch (e) {
       console.error('Auth load error:', e);
-      // Ensure auth state is reset on any error
       set({ usr: null, ses: null, gdp: false });
     } finally {
       // Always set init to true to prevent infinite loading
@@ -129,10 +114,6 @@ export const useAuth = create<AuthState>((set, get) => ({
       const { data, error } = await sb.auth.signInWithPassword({
         email: em,
         password: pwd,
-        options: {
-          persistSession: remember,
-          storageKey: 'supabase.session'
-        }
       });
       
       if (error) throw error;
@@ -140,18 +121,18 @@ export const useAuth = create<AuthState>((set, get) => ({
       // Store session with expiry
       if (data.session) {
         storage.setItem('supabase.session', JSON.stringify(data.session));
-        storage.setItem('supabase.session.expires', data.session.expires_at?.toString() || '');
+        if (data.session.expires_at) {
+          storage.setItem('supabase.session.expires', data.session.expires_at.toString());
+        }
       }
       
-      set({ 
-        usr: data.user, 
-        ses: data.session
-      });
+      // Immediately after login, load user data
+      const { loadUsr } = get();
+      await loadUsr();
       
       return { usr: data.user, ses: data.session };
     } catch (e: any) {
       console.error('Sign in error:', e);
-      // Reset auth state on sign in error
       set({ usr: null, ses: null, gdp: false });
       return { err: e.message || 'Sign in failed' };
     } finally {
@@ -165,7 +146,8 @@ export const useAuth = create<AuthState>((set, get) => ({
       set({ ldg: true });
       localStorage.removeItem('supabase.session');
       localStorage.removeItem('supabase.session.expires');
-      sessionStorage.clear();
+      sessionStorage.removeItem('supabase.session');
+      sessionStorage.removeItem('supabase.session.expires');
       
       await sb.auth.signOut();
       
@@ -225,12 +207,13 @@ export const useAuth = create<AuthState>((set, get) => ({
       
       // Log an update to profile if it contains significant changes
       if (data.fn || data.ln || data.em || data.ph) {
-        await sb.rpc('log_consent', {
+        const { error: logError } = await sb.rpc('log_consent', {
           p_uid: usr.id,
           p_typ: 'profile_update',
           p_dat: { fields: Object.keys(data) },
           p_ip: ''
-        }).catch(e => console.error('Failed to log consent:', e));
+        });
+        if (logError) console.error('Failed to log consent:', logError);
       }
       
       return {};
@@ -281,20 +264,15 @@ export const useAuth = create<AuthState>((set, get) => ({
       const usr = get().usr;
       if (!usr) throw new Error('Not authenticated');
       
-      try {
-        // Log data access request
-        await sb.rpc('log_consent', {
-          p_uid: usr.id,
-          p_typ: 'data_access',
-          p_dat: { requested: new Date().toISOString() },
-          p_ip: ''
-        });
-      } catch (e) {
-        console.error('Failed to log consent:', e);
-      }
+      const { error: logError } = await sb.rpc('log_consent', {
+        p_uid: usr.id,
+        p_typ: 'data_access',
+        p_dat: { requested: new Date().toISOString() },
+        p_ip: ''
+      });
+      if (logError) console.error('Failed to log consent:', logError);
       
       // In a real implementation, this would generate and return a download URL
-      // For demo purposes, we're just returning success
       return { url: '#data-export-url' };
     } catch (e: any) {
       console.error('Data request error:', e);
@@ -328,12 +306,13 @@ export const useAuth = create<AuthState>((set, get) => ({
         }
         
         // Log deletion request
-        await sb.rpc('log_consent', {
+        const { error: logError } = await sb.rpc('log_consent', {
           p_uid: usr.id,
           p_typ: 'data_deletion',
           p_dat: { deleted: new Date().toISOString() },
           p_ip: ''
         });
+        if (logError) console.error('Failed to log consent:', logError);
       } catch (e) {
         console.error('RPC error:', e);
       }
@@ -360,38 +339,18 @@ export const initAuth = () => {
   loadUsr();
   
   // Set up auth state change listener
-  sb.auth.onAuthStateChange(async (_event, session) => {
-    if (session) {
-      try {
-        // Verify session is still valid by attempting to fetch profile
-        const { error } = await sb
-          .from('profiles')
-          .select('gdp')
-          .eq('uid', session.user.id)
-          .single();
-          
-        if (error) {
-          if (error.message.includes('JWT expired')) {
-            await sb.auth.signOut();
-            useAuth.setState({ ses: null, usr: null, gdp: false });
-            return;
-          }
-          console.error('Profile check error:', error);
-          throw error;
-        }
-        
-        useAuth.setState({ ses: session, usr: session.user });
-      } catch (e) {
-        console.error('Auth state change error:', e);
-        useAuth.setState({ ses: null, usr: null, gdp: false });
-      }
-    } else {
-      useAuth.setState({ ses: null, usr: null, gdp: false });
-    }
+  sb.auth.onAuthStateChange(async (event, session) => {
+    console.log("Auth state changed:", event);
     
-    // If session exists but we don't have profile data, load it
-    if (session && !useAuth.getState().init) {
-      loadUsr();
+    const { loadUsr } = useAuth.getState();
+    
+    // For critical events, reload the user
+    if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) {
+      try {
+        await loadUsr();
+      } catch (error) {
+        console.error('Auth state change error:', error);
+      }
     }
   });
 }
