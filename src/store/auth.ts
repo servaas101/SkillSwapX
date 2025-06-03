@@ -47,7 +47,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           const { data, error } = await sb
             .from('profiles')
             .select('*')
-            .eq('uid', session.user.id)
+            .eq('id', session.user.id)
             .single();
             
           if (error) {
