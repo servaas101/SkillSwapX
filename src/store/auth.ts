@@ -194,7 +194,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           ...data,
           udt: new Date().toISOString()
         })
-        .eq('uid', usr.id);
+        .eq('id', usr.id);
         
       if (error) {
         // Handle JWT expiration during profile update
@@ -208,7 +208,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       // Log an update to profile if it contains significant changes
       if (data.fn || data.ln || data.em || data.ph) {
         const { error: logError } = await sb.rpc('log_consent', {
-          p_uid: usr.id,
+          p_id: usr.id,
           p_typ: 'profile_update',
           p_dat: { fields: Object.keys(data) },
           p_ip: ''
@@ -265,7 +265,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       if (!usr) throw new Error('Not authenticated');
       
       const { error: logError } = await sb.rpc('log_consent', {
-        p_uid: usr.id,
+        p_id: usr.id,
         p_typ: 'data_access',
         p_dat: { requested: new Date().toISOString() },
         p_ip: ''
