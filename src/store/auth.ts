@@ -46,7 +46,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           // Get user profile if session exists
           const { data, error } = await sb
             .from('profiles')
-            .select('*')
+            .select('gdp, role, username, full_name, avatar_url')
             .eq('id', session.user.id)
             .single();
             
