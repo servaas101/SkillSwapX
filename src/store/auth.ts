@@ -9,7 +9,7 @@ type AuthState = {
   ldg: boolean;
   init: boolean;
   gdp: boolean;
-  signUp: (em: string, pwd: string) => Promise<{ err?: string }>;
+  signUp: (em: string, pwd: string, metadata?: Record<string, any>) => Promise<{ err?: string }>; // Added metadata param
   signIn: (em: string, pwd: string, remember?: boolean) => Promise<{ err?: string, usr?: User }>;
   signOut: () => Promise<void>;
   resetPwd: (em: string) => Promise<{ err?: string }>;
@@ -91,16 +91,17 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  // Sign up a new user
-  signUp: async (em, pwd) => {
+  // Sign up a new user (FIXED: Removed profile verification)
+  signUp: async (em, pwd, metadata = {}) => {
     try {
       set({ ldg: true });
       
-      // Sign up the user
+      // Sign up the user with metadata
       const { data, error } = await sb.auth.signUp({
         email: em,
         password: pwd,
         options: {
+          data: metadata, // Pass metadata to trigger
           emailRedirectTo: import.meta.env.PROD
             ? 'https://resilient-faloodeh-3065ca.netlify.app/Dashboard'
             : `${window.location.origin}/Dashboard`
@@ -109,27 +110,13 @@ export const useAuth = create<AuthState>((set, get) => ({
       
       if (error) throw error;
       
-      // Wait briefly to allow trigger to create profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Verify profile was created
-      if (data.user) {
-        const { error: profileError } = await sb
-          .from('profiles')
-          .select('id')
-          .eq('id', data.user.id)
-          .single();
-          
-        if (profileError) {
-          console.error('Profile verification error:', profileError);
-          throw new Error('Failed to create user profile');
-        }
-      }
-      
       return {};
     } catch (e: any) {
       console.error('Sign up error:', e);
-      return { err: e.message || 'Sign up failed' };
+      return { 
+        err: e.message || 'Sign up failed',
+        details: e.status ? `Status: ${e.status}` : undefined
+      };
     } finally {
       set({ ldg: false });
     }
@@ -163,7 +150,10 @@ export const useAuth = create<AuthState>((set, get) => ({
     } catch (e: any) {
       console.error('Sign in error:', e);
       set({ usr: null, ses: null, gdp: false });
-      return { err: e.message || 'Sign in failed' };
+      return { 
+        err: e.message || 'Sign in failed',
+        details: e.status ? `Status: ${e.status}` : undefined
+      };
     } finally {
       set({ ldg: false });
     }
