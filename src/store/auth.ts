@@ -95,7 +95,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       import.meta.env.PROD
         ? 'https://resilient-faloodeh-3065ca.netlify.app/Dashboard'
         : 'http://localhost:3000'
-  });
+      });
       
       if (error) throw error;
       
@@ -132,8 +132,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       }
       
       // Immediately after login, load user data
-      const { loadUsr } = get();
-      await loadUsr();
+      await get().loadUsr();
       
       return { usr: data.user, ses: data.session };
     } catch (e: any) {
