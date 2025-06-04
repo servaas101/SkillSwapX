@@ -90,7 +90,12 @@ export const useAuth = create<AuthState>((set, get) => ({
       const { data, error } = await sb.auth.signUp({
         email: em,
         password: pwd
-      });
+      },
+      { redirectTo: 
+      import.meta.env.PROD
+        ? 'https://resilient-faloodeh-3065ca.netlify.app/Dashboard'
+        : 'http://localhost:3000'
+  });
       
       if (error) throw error;
       
