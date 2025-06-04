@@ -65,7 +65,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           const enrichedUser = {
             ...session.user,
             role: data.role,
-            mentorStatus: data.mentor_status || 'none',      // use the exact column name or camelCase
+            mentorStatus: data.mentor_status || 'none',
             mentorAppliedAt: data.mentor_applied_at || null,
           };
           
@@ -95,21 +95,38 @@ export const useAuth = create<AuthState>((set, get) => ({
   signUp: async (em, pwd) => {
     try {
       set({ ldg: true });
+      
+      // Sign up the user
       const { data, error } = await sb.auth.signUp({
         email: em,
-        password: pwd
-      },
-      { redirectTo: 
-      import.meta.env.PROD
-        ? 'https://resilient-faloodeh-3065ca.netlify.app/Dashboard'
-        : 'http://localhost:3000'
+        password: pwd,
+        options: {
+          emailRedirectTo: import.meta.env.PROD
+            ? 'https://resilient-faloodeh-3065ca.netlify.app/Dashboard'
+            : `${window.location.origin}/Dashboard`
+        }
       });
       
       if (error) throw error;
       
-      // Profile is created automatically via database trigger
+      // Wait briefly to allow trigger to create profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      return { err: undefined };
+      // Verify profile was created
+      if (data.user) {
+        const { error: profileError } = await sb
+          .from('profiles')
+          .select('id')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profileError) {
+          console.error('Profile verification error:', profileError);
+          throw new Error('Failed to create user profile');
+        }
+      }
+      
+      return {};
     } catch (e: any) {
       console.error('Sign up error:', e);
       return { err: e.message || 'Sign up failed' };
