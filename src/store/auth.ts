@@ -337,24 +337,11 @@ export const useAuth = create<AuthState>((set, get) => ({
 
 // Initialize auth listener
 export const initAuth = () => {
-  const { loadUsr } = useAuth.getState();
-  
-  // Load initial auth state
-  loadUsr();
-  
-  // Set up auth state change listener
+  useAuth.getState().loadUsr();
   sb.auth.onAuthStateChange(async (event, session) => {
-    console.log("Auth state changed:", event);
-    
-    const { loadUsr } = useAuth.getState();
-    
-    // For critical events, reload the user
-    if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) {
-      try {
-        await loadUsr();
-      } catch (error) {
-        console.error('Auth state change error:', error);
-      }
+    if (['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED','USER_UPDATED'].includes(event)) {
+      await useAuth.getState().loadUsr();
     }
   });
+};
 }
