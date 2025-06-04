@@ -91,7 +91,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  // Sign up a new user (UPDATED: Manual profile creation)
+  // Sign up a new user
   signUp: async (em, pwd, metadata = {}) => {
     try {
       set({ ldg: true });
@@ -115,9 +115,11 @@ export const useAuth = create<AuthState>((set, get) => ({
           .from('profiles')
           .insert({
             id: data.user.id,
-            email: em,
+            username: em.split('@')[0], // Generate a username from email
             full_name: metadata.full_name || '',
-            phone_number: metadata.phone_number || null
+            role: 'employee', // Default role
+            gdp: false, // Default GDPR status
+            mentor_status: 'none' // Default mentor status
           });
           
         if (profileError) {
@@ -125,7 +127,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           
           // Handle specific constraint violation errors
           if (profileError.code === '23505') {
-            throw new Error('User with this email or phone number already exists');
+            throw new Error('User with this email already exists');
           }
           
           throw new Error('Failed to create user profile');
