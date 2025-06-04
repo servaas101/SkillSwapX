@@ -60,11 +60,17 @@ export const useAuth = create<AuthState>((set, get) => ({
             }
             throw error;
           }
+
+          // Merge role & gdp into the user object
+          const enrichedUser = {
+            ...session.user,
+            role: data.role || 'authenticated'
+          };
           
           set({ 
-            usr: session.user,
+            usr: enrichedUser as any,
             ses: session,
-            gdp: data?.gdp || false
+            gdp: data.gdp || false
           });
         } catch (profileError) {
           console.error('Profile fetch error:', profileError);
