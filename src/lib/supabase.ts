@@ -40,14 +40,6 @@ export class DatabaseClient {
           flowType: 'pkce',
           debug: import.meta.env.DEV
         },
-        global: {
-          headers: {
-            'apikey': supaKey,
-            'Accept': 'application/json',
-            'x-client-info': 'skillswapx',
-            'X-Client-Version': '1.0.0'
-          }
-        },
         realtime: {
           params: { 
             eventsPerSecond: 2,
