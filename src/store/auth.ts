@@ -64,7 +64,9 @@ export const useAuth = create<AuthState>((set, get) => ({
           // Merge role & gdp into the user object
           const enrichedUser = {
             ...session.user,
-            role: data.role || 'authenticated'
+            role: data.role,
+            mentorStatus: data.mentor_status || 'none',      // use the exact column name or camelCase
+            mentorAppliedAt: data.mentor_applied_at || null,
           };
           
           set({ 
