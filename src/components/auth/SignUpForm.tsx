@@ -1,61 +1,76 @@
 import { useState } from 'react';
 import { useAuth } from '../../store/auth';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Phone, User as UserIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function SignUpForm() {
-  const [em, setEm] = useState('');
-  const [pwd, setPwd] = useState('');
-  const [cpw, setCpw] = useState('');
-  const [gdp, setGdp] = useState(false);
-  const [err, setErr] = useState('');
-  const [suc, setSuc] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [gdpr, setGdpr] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   
-  const { signUp, ldg } = useAuth();
+  const { signUp, loading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErr('');
+    setError('');
     
-    if (!em || !pwd || !cpw) {
-      setErr('Please fill in all required fields');
+    // Validation
+    if (!fullName || !email || !password || !confirmPassword) {
+      setError('Please fill in all required fields');
       return;
     }
     
-    if (pwd !== cpw) {
-      setErr('Passwords do not match');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
     
-    if (pwd.length < 8) {
-      setErr('Password must be at least 8 characters');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
       return;
     }
     
-    if (!gdp) {
-      setErr('You must accept the privacy policy');
+    if (!gdpr) {
+      setError('You must accept the privacy policy');
       return;
     }
-    
-    const { err: signUpErr } = await signUp(em, pwd);
-    
-    if (signUpErr) {
-      setErr(signUpErr);
-    } else {
-      setSuc(true);
+
+    try {
+      // Pass metadata to signUp function
+      const { err: signUpError } = await signUp(email, password, {
+        full_name: fullName,
+        phone_number: phoneNumber
+      });
+      
+      if (signUpError) {
+        setError(signUpError);
+      } else {
+        setSuccess(true);
+      }
+    } catch (err: any) {
+      console.error('Signup error:', err);
+      setError(err.message || 'An unexpected error occurred');
     }
   };
 
-  if (suc) {
+  if (success) {
     return (
       <div className="w-full max-w-md space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <User className="h-6 w-6 text-green-600" />
+            <UserIcon className="h-6 w-6 text-green-600" />
           </div>
           <h2 className="mt-4 text-2xl font-bold text-gray-900">Check your email</h2>
           <p className="mt-2 text-gray-600">
-            We've sent a verification link to <span className="font-medium">{em}</span>
+            We've sent a verification link to <span className="font-medium">{email}</span>
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            Please check your inbox and verify your email to complete registration.
           </p>
         </div>
         <div className="mt-6">
@@ -79,6 +94,27 @@ export function SignUpForm() {
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
+          <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+            Full Name
+          </label>
+          <div className="relative mt-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <User className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="fullName"
+              type="text"
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="block w-full rounded-md border border-gray-300 py-3 pl-10 pr-3 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="John Doe"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
             Email
           </label>
@@ -90,11 +126,31 @@ export function SignUpForm() {
               id="email"
               type="email"
               autoComplete="username"
-              value={em}
-              onChange={(e) => setEm(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="block w-full rounded-md border border-gray-300 py-3 pl-10 pr-3 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="name@example.com"
               required
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+            Phone Number (Optional)
+          </label>
+          <div className="relative mt-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Phone className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="phoneNumber"
+              type="tel"
+              autoComplete="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="block w-full rounded-md border border-gray-300 py-3 pl-10 pr-3 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="+1 (555) 123-4567"
             />
           </div>
         </div>
@@ -111,8 +167,8 @@ export function SignUpForm() {
               id="password"
               type="password"
               autoComplete="new-password"
-              value={pwd}
-              onChange={(e) => setPwd(e.target.value)}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="block w-full rounded-md border border-gray-300 py-3 pl-10 pr-3 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="••••••••"
               required
@@ -133,8 +189,8 @@ export function SignUpForm() {
               id="confirmPassword"
               type="password"
               autoComplete="new-password"
-              value={cpw}
-              onChange={(e) => setCpw(e.target.value)}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="block w-full rounded-md border border-gray-300 py-3 pl-10 pr-3 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="••••••••"
               required
@@ -147,8 +203,8 @@ export function SignUpForm() {
             <input
               id="gdpr"
               type="checkbox"
-              checked={gdp}
-              onChange={(e) => setGdp(e.target.checked)}
+              checked={gdpr}
+              onChange={(e) => setGdpr(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               required
             />
@@ -167,18 +223,18 @@ export function SignUpForm() {
           </div>
         </div>
         
-        {err && (
+        {error && (
           <div className="rounded-md bg-red-50 p-4">
-            <div className="text-sm text-red-700">{err}</div>
+            <div className="text-sm text-red-700">{error}</div>
           </div>
         )}
         
         <button
           type="submit"
-          disabled={ldg}
+          disabled={loading}
           className="group relative flex w-full justify-center rounded-md bg-blue-600 py-3 px-4 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
         >
-          {ldg ? (
+          {loading ? (
             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
               <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-white"></div>
             </span>
@@ -187,7 +243,7 @@ export function SignUpForm() {
               <ArrowRight className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
             </span>
           )}
-          {ldg ? 'Creating account...' : 'Create account'}
+          {loading ? 'Creating account...' : 'Create account'}
         </button>
         
         <div className="mt-4 text-center text-sm text-gray-600">
