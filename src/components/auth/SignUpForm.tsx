@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../store/auth';
-import { Mail, Lock, User, ArrowRight, Phone, User as UserIcon } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function SignUpForm() {
@@ -42,13 +42,13 @@ export function SignUpForm() {
 
     try {
       // Pass metadata to signUp function
-      const { err: signUpError } = await signUp(email, password, {
+      const { err: signUpError, details } = await signUp(email, password, {
         full_name: fullName,
         phone_number: phoneNumber
       });
       
       if (signUpError) {
-        setError(signUpError);
+        setError(`${signUpError}${details ? ` (${details})` : ''}`);
       } else {
         setSuccess(true);
       }
@@ -63,7 +63,7 @@ export function SignUpForm() {
       <div className="w-full max-w-md space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <UserIcon className="h-6 w-6 text-green-600" />
+            <User className="h-6 w-6 text-green-600" />
           </div>
           <h2 className="mt-4 text-2xl font-bold text-gray-900">Check your email</h2>
           <p className="mt-2 text-gray-600">
@@ -225,7 +225,12 @@ export function SignUpForm() {
         
         {error && (
           <div className="rounded-md bg-red-50 p-4">
-            <div className="text-sm text-red-700">{error}</div>
+            <div className="text-sm text-red-700">
+              {error}
+              <p className="mt-2 text-xs">
+                If this persists, please contact support with the details
+              </p>
+            </div>
           </div>
         )}
         
