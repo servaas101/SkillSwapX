@@ -146,8 +146,140 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  // Rest of the code remains the same...
-  // [Keep all other functions unchanged]
+  // Sign in an existing user
+  signIn: async (em, pwd, remember = false) => {
+    try {
+      set({ ldg: true });
+      
+      const { data, error } = await sb.auth.signInWithPassword({
+        email: em,
+        password: pwd
+      });
+      
+      if (error) throw error;
+      
+      if (data.user) {
+        // Load user profile after successful sign in
+        await get().loadUsr();
+        return { usr: data.user };
+      }
+      
+      return {};
+    } catch (e: any) {
+      console.error('Sign in error:', e);
+      return { 
+        err: e.message || 'Sign in failed'
+      };
+    } finally {
+      set({ ldg: false });
+    }
+  },
+
+  // Sign out the current user
+  signOut: async () => {
+    try {
+      set({ ldg: true });
+      await sb.auth.signOut();
+      set({ usr: null, ses: null, gdp: false });
+    } catch (e) {
+      console.error('Sign out error:', e);
+    } finally {
+      set({ ldg: false });
+    }
+  },
+
+  // Reset password
+  resetPwd: async (em) => {
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(em, {
+        redirectTo: import.meta.env.PROD
+          ? 'https://resilient-faloodeh-3065ca.netlify.app/reset-password'
+          : `${window.location.origin}/reset-password`
+      });
+      
+      if (error) throw error;
+      return {};
+    } catch (e: any) {
+      return { err: e.message || 'Password reset failed' };
+    }
+  },
+
+  // Update user profile
+  updatePrf: async (data) => {
+    try {
+      const { usr } = get();
+      if (!usr) throw new Error('No user logged in');
+      
+      const { error } = await sb
+        .from('profiles')
+        .update(data)
+        .eq('id', usr.id);
+      
+      if (error) throw error;
+      
+      // Reload user data
+      await get().loadUsr();
+      return {};
+    } catch (e: any) {
+      return { err: e.message || 'Profile update failed' };
+    }
+  },
+
+  // Set GDPR consent
+  setGdp: async (val) => {
+    try {
+      const { usr } = get();
+      if (!usr) throw new Error('No user logged in');
+      
+      const { error } = await sb
+        .from('profiles')
+        .update({ gdp: val })
+        .eq('id', usr.id);
+      
+      if (error) throw error;
+      
+      set({ gdp: val });
+      return {};
+    } catch (e: any) {
+      return { err: e.message || 'GDPR update failed' };
+    }
+  },
+
+  // Request user data
+  reqData: async () => {
+    try {
+      const { usr } = get();
+      if (!usr) throw new Error('No user logged in');
+      
+      // This would typically generate a data export
+      // For now, return a placeholder URL
+      return { url: '/api/export-data' };
+    } catch (e: any) {
+      return { err: e.message || 'Data request failed' };
+    }
+  },
+
+  // Delete user data
+  delData: async () => {
+    try {
+      const { usr } = get();
+      if (!usr) throw new Error('No user logged in');
+      
+      // Delete user profile
+      const { error } = await sb
+        .from('profiles')
+        .delete()
+        .eq('id', usr.id);
+      
+      if (error) throw error;
+      
+      // Sign out after deletion
+      await get().signOut();
+      return {};
+    } catch (e: any) {
+      return { err: e.message || 'Data deletion failed' };
+    }
+  }
 }));
 
 // Initialize auth listener

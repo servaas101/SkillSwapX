@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '../components/auth/AuthProvider';
+import { useAuth } from '../store/auth';
 import { SignInForm } from '../components/auth/SignInForm';
 
 export function SignIn() {
-  const { usr } = useAuthContext();
+  const { usr } = useAuth();
   const nav = useNavigate();
 
   // Redirect if already logged in
