@@ -27,7 +27,7 @@ export const sg = {
       // Add edges based on relationships
       skills.forEach(s => {
         if (s.related) {
-          s.related.forEach(r => {
+          s.related.forEach((r: unknown) => {
             if (g.hasNode(r)) {
               g.addEdge(s.id, r, { weight: 1 });
             }

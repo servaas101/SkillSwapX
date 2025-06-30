@@ -1,0 +1,7 @@
+# SkillSwapX PRD
+
+## Feature: Branding Badges
+- Implement Bolt.new badge component
+- Add to footer layout
+- Update documentation
+- Verify visual appearance
