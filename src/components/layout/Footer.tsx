@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { BrainCircuit, Github, Twitter, Linkedin } from 'lucide-react';
+import BoltBadge from '../badges/BoltBadge';
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -109,6 +110,7 @@ export function Footer() {
           </p>
         </div>
       </div>
+      <BoltBadge />
     </footer>
   );
 }
